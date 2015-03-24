@@ -75,50 +75,53 @@ In this section we will define notion of a Time Resource Network. For such a net
 Let's first define general problem of scheduling with resource limits. We will extend the notion of a Chance Constrained Probabilistic Simple Temporal Network defined by \cite{Fang2014}. Time Resource Network defines two types of constraints - time constraints and resource constraints. Time constraints are expressed by the following variables:
 \begin{itemize}
 \item Set of abstract time points $V = V_C \cup V_R $.
-\begin{itemize}
-\item $V_C$ is a set of controllable time points (chosen by us)
-\item $V_R$ is a set of random time points (chosen by environment)
-\end{itemize}
+    \begin{itemize}
+    \item $V_C$ is a set of controllable time points (chosen by us)
+    \item $V_R$ is a set of random time points (chosen by environment)
+    \end{itemize}
 \item Set of time constraints $E = E_L \cup E_P $.
+    \begin{itemize}
+    \item $E_L$ is a set of linear time constraints of form $(y-x) \in [l,u]$, where $x,y \in V$ and $l,u \in \mathbb{R}$.
+    \item $E_P$ is a set of probabilistic time constraints of form $ (y-x) \sim D$ where $x \in V_C$, $y \in V_R$ and $D$ is some probability distribution. Additionally we require that each random time point is and end (a $y$ variable) of exactly one probabilistic constraint and vice versa. We can think of a probabilistic constraint as defining constraint for a random time point.
+    \end{itemize}
+\end{itemize}
+In this paper we define network consuming single type of resource but extension to many resources is straightforward. Constraints are expressed by the following variables:
 \begin{itemize}
-\item $E_L$ is a set of linear time constraints of form $(y-x) \in [l,u]$, where $x,y \in V$ and $l,u \in \mathbb{R}$.
-\item $E_P$ is a set of probabilistic time constraints of form $ (y-x) \sim D$ where $x \in V_C$, $y \in V_R$ and $D$ is some probability distribution.
+\item A set of resource constraints $E_R$, each of which is of form $x \xrightarrow{D} y$ where $x,y \in V_C$ and $D$ is some distribution on resource usage. We allow positive as well as negative usage; the former means consumption rate and the latter means production rate between time points $x$ and $y$. Notice that for the purpose of this publication we do not allow to define resource usage for random time points.
 \end{itemize}
-\item an upper bound on total probability of failure $p_f$ (acceptable risk)
-\end{itemize}
-Additionally we require that each random time point is and end (a $y$ variable) of exactly one probabilistic constraint and vice versa (every probabilistic constraint begins with controllable time point and ends with a random time point).\\
-Resource constraints are expressed by the following variables:
-\begin{itemize}
-\item Set of resources $R$
-\item Resource usage/production edges $R_E$ which are of form $x \xrightarrow{r:c} y$ where $r\in R$ and $c \in \mathbb{R}$. If $c$ is positive this means that on the time interval $[x,y]$ there are $c$ units of resource $r$ available. Similarly if $c$ is negative it means that on the time interval $[x,y]$, the amount of $c$ units of resource $r$ is used.
-\end{itemize}
-We do not allow to define resource usage for random time points.
-Given a TRN $(V,E,r,R,R_E)$ we can define a \textbf{schedule} $s: V_c \rightarrow \mathbb{R}$, which is a function assigning execution time to controllable time points.
+
+\noindent Given a TRN $(V,E,r,R,R_E)$ we can define a \textbf{schedule} $s: V_c \rightarrow \mathbb{R}$, which is a function assigning execution time to controllable time points.
 \subsection{$p$-Strong Controllability}
-\cite{Fang2014} extended notion of strong controllability to pSTNs, which naturally carries on to TRN.  For a given schedule $s$ and assignment $a: V_R \rightarrow \mathbb{R}$ to random time points we can define probability that assignment
+\cite{Fang2014} extended notion of strong controllability to pSTNs, which naturally carries on to TRN.  For a given schedule $s$ and assignment $a: V_R \rightarrow \mathbb{R}$ to random time points we can define probability of that assignment as
 \begin{align*}
 Pr(a) = \prod_{(y-x \sim D) \in E_P} Pr_D(a(y)-s(x))
 \end{align*}.
-Moreover we say assignment $a$ is consistent under schedule $s$ if it satisfies all the linear time constraints in $E_L$.
-We say that probability network is \textbf{$p$-strongly controllable} if there exists a schedule $s$ such that with probability at least $p$ the assignment $a$ is consistent under schedule $s$ i.e.
+Moreover we say assignment $a$ is \textbf{consistent} under schedule $s$ if it satisfies all the linear time constraints in $E_L$ i.e.
 \begin{align*}
-\exists_s \int_{a} Pr(a) [\text{s,a satisfy all the linear constraints} ] \geq p
+\forall_{(y-x \in [l,u]) \in E_L} l \leq A(y) - A(x) \leq u
 \end{align*}
+Where $A$ is defined as
+\begin{align*}
+A(x)=\begin{cases}
+s(x) & if\ x \in V_C\\
+a(x) & if\ x \in V_R
+\end{cases}
+\end{align*}
+We say that probability network is \textbf{$p$-strongly controllable} under schedule $s$ if with probability $p$ assignment $a$ is consistent under $s$.
 
-\subsection{Resource consistency}
-For a given schedule $s$ let's define $U_r^s(t)$ as the usage of resource $r$ at time $t$ under schedule $s$. More formally
+\subsection{$p$-Resource consistency}
+For a TRN we define resource usage as $u:E_R \rightarrow \mathbb{R}$. For resource usage we define its probability as a product of probabilities of every resource constraint taking that value (according to its distribution $D$).
+For a given schedule $s$ and usage $u$ let's define $U_u^s(t)$ as net usage of a resource at time $t$ under schedule $s$. More formally
 \[
-U_r(t) = \sum_{\forall_{x \xrightarrow{r:c} y \in R_E}. s(x)\leq t \leq s(y)} c
+U_u^s(t) = \sum_{\forall_{c \in R_E}. s(x)\leq t \leq s(y)} u(c)
 \]
-We say the network satisfy the network is \textbf{resource consistent} under schedule $s$ if it newer uses more resources than limit, i.e.
+We say the network satisfy the network is \textbf{resource consistent} under schedule $s$ and usage $u$ if it newer uses more resources than limit, i.e.
 \[
-\forall_{r \in R} \forall_{t} . U_r^s(t) \leq 0
+\forall_{r \in R} \forall_{t} . U_u^s(t) \leq 0
 \]
+Finally we say that network is \textbf{$p$-resource consistent} if under schedule $s$ probability of $u$ being resource consistent is at least $p$.
 \subsection{The problem}
-The problem that we are solving in this paper is determining whether TRN is consistent i.e. whether
-there exists a schedule such that under that schedule network is $(1-p_f)$-strongly consistent and resource consistent.
-
-
+The problem that we are solving in this paper is determining whether TRN is consistent under acceptable risk in resource in time i.e. if acceptable risk in time is $r_T$ and acceptable risk in resource is $r_R$ we would like to find a schedule $s$ such that network is $(1-r_T)$-strongly controllable and $(1-r_R)$-resource consistent. Even though we frame the problem in this way it is not hard to alter the algorithm to consider constraint on sum $r_T + r_R$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Algorithm}
 \blindtext[5]
