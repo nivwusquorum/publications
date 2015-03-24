@@ -11,6 +11,8 @@
 \usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
 \usepackage{fancyhdr}
 
+\bibliographystyle{apalike}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FANCY HEADER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fancyhead{}
@@ -68,14 +70,12 @@ $\ $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEM STATEMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
-\subsection{Scheduling with resource limits (Cheng, Peng and Szymon)}
-The notation is slightly different than the one used in publications related to scheduling with resrouce limits (for example Nicola Muscettola
- paper). The motivation here is to make expressing energy problems more natural in the framework.
-Let's first define general problem of scheduling with resource limits. I will extend the notion of a Chance Constrained Simple Temporal Network defined by Cheng Fang. The time dependencies are expresessed by the following variables:
+\subsection{Time Resource Network}
+Let's first define general problem of scheduling with resource limits. We will extend the notion of a Chance Constrained Simple Temporal Network defined by \cite{Fang2014}. Time Resource Network defines two types of constraints - time constraints and resource constraints. Time constraints are expressed by the following variables:
 \begin{itemize}
 \item Set of time points $V = V_C \cup V_R $.
 \begin{itemize}
-\item $V_C$ is a set of controllable time points (chosen by agent)
+\item $V_C$ is a set of controllable time points (chosen by us)
 \item $V_R$ is a set of random time points (chosen by environment)
 \end{itemize}
 \item Set of time constraints $E = E_L \cup E_P $.
@@ -85,34 +85,28 @@ Let's first define general problem of scheduling with resource limits. I will ex
 \end{itemize}
 \item an upper bound on total probability of failure $r$ (acceptable risk)
 \end{itemize}
-Additionally we require that each random time point is and end (a $y$ variable) of exactly one probabilistic constraint.
-To resource constraints are expressed by the following variables:
+Additionally we require that each random time point is and end (a $y$ variable) of exactly one probabilistic constraint and vice versa (every probabilistic constraint begins with controllable time point and ends with a random time point).\\
+Resource constraints are expressed by the following variables:
 \begin{itemize}
 \item Set of resources $R$
-\item Resource usage/production information which are of form $x \xrightarrow{r:c} y$ where $r\in R$ and $c \in \mathbb{R}$. If $c$ is positive this means that on the time interval $[x,y]$ there are $c$ units of resource $r$ available. Similarly if $c$ is negative it means that on the time interval $[x,y]$, the amount of $c$ units of resource $r$ is used.
+\item Resource usage/production edges which are of form $x \xrightarrow{r:c} y$ where $r\in R$ and $c \in \mathbb{R}$. If $c$ is positive this means that on the time interval $[x,y]$ there are $c$ units of resource $r$ available. Similarly if $c$ is negative it means that on the time interval $[x,y]$, the amount of $c$ units of resource $r$ is used.
 \end{itemize}
-Additionally we do not allow to define resource usage for random time points.\\
-The semantics of time constraints is essentially the same as in Cheng's paper. In short we want the to exists an assigment to controllable timepoints such that the network is consistent with probability at least $(1-r)$. The semantics of resource constraints follows. To aid the explanation let's define $U_r(t)$ as the usage of resource $r$ at time $t$. More formally
+We do not allow to define resource usage for random time points.
+\subsection{Strong Controllability}
+We will seek
+The semantics of time constraints is essentially the same as in Cheng's paper. In short we want the to exists an assigment to controllable timepoints such that the network is consistent with probability at least $(1-r)$.
+\subsection{Resource consistency}
+To aid the explanation let's define $U_r(t)$ as the usage of resource $r$ at time $t$. More formally
 \[
 U_r(t) = \sum_{\forall x \xrightarrow{r:c} y. x\leq t \leq y} c
 \]
-We say the network satisfy the network satisfies resource constraints if it newer uses more resources than limit. More formally:
+We say the network satisfy the network is \textbf{resource consistent} if it newer uses more resources than limit, i.e.
 \[
-\forall_{r \in R} \not \exists_{t} . U_r(t) \geq 0
+\forall_{r \in R} \forall_{t} . U_r(t) \leq 0
 \]
-The problem of scheduling with resource limits is to find a time assignments such that both time and resource constraints are satisfied. 
-\subsection{Conflict directed scheduling with resource limits(Peng and Szymon)}
-For a network which there does not exist an assignment to controllable time points that is consistent with both time and resource constraints we wish to provide find a conflict - a suggested change to problem formulation which bring it closer to feasible solution.
-\subsection{Possible extensions}
-Below are possible extensions. I think the first one is simple to solve. The 2nd and 3rd are potentially hard. The last one sounds extremely hard to solve in reasonable execution time even for small problems.
-\subsubsection{time-varying load profile}
-Variable load profile can be approximated by a piecewise constant function with a series of temporal constraints and resource usage information. Does \textbf{not} require augmenting problem definition
-\subsubsection{resource usage usage defined on random time points}
-Requires augmenting problem definition. 
-\subsubsection{time-varying resource limit}
-Could also potentially be approximated by piecewise constant function. Requires augmenting problem definition.
-\subsubsection{stochastic resource limit}
-Could potentially simulate multiple high likelihood scenarios to estimate probability of failure. Requires augmenting problem definition.
+\subsection{The problem}
+The problem of scheduling with resource limits is to find a time assignments such that both time and resource constraints are satisfied.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTRODUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Algorithm}
@@ -122,18 +116,23 @@ Could potentially simulate multiple high likelihood scenarios to estimate probab
 \blindtext[5]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FUTURE WORK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Future Work}
-\blindtext[5]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Conflict directed scheduling with resource limits(Peng and Szymon)}
+For a network which there does not exist an assignment to controllable time points that is consistent with both time and resource constraints we wish to provide find a conflict - a suggested change to problem formulation which bring it closer to feasible solution.
+\subsection{Possible extensions}
+Below are possible extensions. I think the first one is simple to solve. The 2nd and 3rd are potentially hard. The last one sounds extremely hard to solve in reasonable execution time even for small problems.
+\subsubsection{time-varying load profile}
+Variable load profile can be approximated by a piecewise constant function with a series of temporal constraints and resource usage information. Does \textbf{not} require augmenting problem definition
+\subsubsection{resource usage usage defined on random time points}
+Requires augmenting problem definition.
+\subsubsection{time-varying resource limit}
+Could also potentially be approximated by piecewise constant function. Requires augmenting problem definition.
+\subsubsection{stochastic resource limit}
+Could potentially simulate multiple high likelihood scenarios to estimate probability of failure. Requires augmenting problem definition.%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
 \blindtext[5]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% REFERENCES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{References}
-\blindtext[5]
 
-%\section{Conclusion}
-%``I always thought something was fundamentally wrong with the universe'' \citep{adams1995hitchhiker}
-
-%\bibliographystyle{plain}
-%\bibliography{references}
+\bibliography{references}
 \end{multicols}
 \end{document}

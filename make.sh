@@ -27,7 +27,7 @@ function on_error {
 }
 
 # Change to absolute path
-latex_folder=$(cd $latex_folder && pwd)  
+latex_folder=$(cd $latex_folder && pwd)
 
 mkdir -p $latex_folder/build
 pushd $latex_folder/build > /dev/null
@@ -38,12 +38,12 @@ do
 	filename="${filename%.*}"
     COMPILE_FAILURE=0
 	pdflatex -shell-escape $tex_file > latex_output.log <<< "q" || on_error
-    
+
     # bibtex throws error code 2 if bibliography is not present in pdf
-    # this is acceptable. 
+    # this is acceptable.
     set +e
-    	bibtex $filename.aux > latex_output.log 2>&1
-        [[ $? == 0 || $? == 2 ]] || on_error
+        cp ../*.bib ./
+    	bibtex $filename.aux > bibtex.log 2>&1 || cat bibtex.log
     set -e
 	pdflatex -shell-escape $tex_file > latex_output.log <<< "q" || on_error
 	pdflatex -shell-escape $tex_file > latex_output.log <<< "q" || on_error
