@@ -13,6 +13,10 @@
 
 \bibliographystyle{apalike}
 
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FANCY HEADER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fancyhead{}
@@ -70,44 +74,41 @@ $\ $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEM STATEMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
-In this section we will define notion of a Time Resource Network. For such a network we will two properties $p$-Strong Controllability and Resource Consistency. The problem we wish to determine is finding a schedule that satisfies both of those properties.
+In this section we will define notion of a Time Resource Network (TRN) and the relevant constraint on TRN's schedule - Resource Consistency.
+\subsection{Abstract Temporal Network}
+Since TRNs can operate on top of many different types of temporal networks, we define a notion of Abstract Temporal Network (ATN), to capture only the necessary properties. For abstract temporal network we define two pieces of functionality:
+\begin{enumerate}
+\item \texttt{nodes(ATN)}, which returns a set of timepoints in $ATN$
+\item \texttt{extend(ATN, $\{ stc_1, ... stc_n \} $)}, which takes ATN and set of simple temporal constraints [cite stn] spanning \texttt{nodes(ATN)}, and returns another $ATN'$, such that there exists a schedule satisfying $TC(ATN')$ if and only if there exists a schedule satisfying $TC(ATN)$ and the obeying set of simple temporal constraint $\{ stc_1, ... stc_n \} $.
+\end{enumerate}
+As the following section describes in detail we will use \texttt{extend} to encode resource constraints over \texttt{nodes}.
+\subsection{Schedule}
+A schedule $s: \texttt{nodes(ATN)} \rightarrow \mathbb{R}$ is a mapping from abstract timepoints in ATN to concrete execution times.
+\subsection{Temporal Consistency}
+For an ATN we define a predicate $TC(s)$, where $s$ a schedule for that ATN. $TC(s)$ is true if we deem schedule acceptable (i.e. satisfying all the temporal constraints).
+\paragraph{Example} TODO: describe for PSTN
 \subsection{Time Resource Network}
-Let's first define general problem of scheduling with resource limits. We will extend the notion of a Chance Constrained Probabilistic Simple Temporal Network defined by \cite{Fang2014}. Time Resource Network defines two types of constraints - time constraints and resource constraints. Time constraints are expressed by the following variables:
+A Time Resource Network $TRN = (ATN, {rc_1, ..., rc_n})$, where $ATN$ is an Abstract Temporal Network and ${rc_1, ..., rc_n}$ is a set of resource constraints. There are a few different types of resource constraints, but they all have a common property - they describe resource usage between two timepoints in \texttt{nodes(ATN)}.
+\subsection{Resource constraints}
 \begin{itemize}
-\item Set of abstract time points $V = V_C \cup V_R $.
-    \begin{itemize}
-    \item $V_C$ is a set of controllable time points (chosen by us)
-    \item $V_R$ is a set of random time points (chosen by environment)
-    \end{itemize}
-\item Set of time constraints $E = E_L \cup E_P $.
-    \begin{itemize}
-    \item $E_L$ is a set of linear time constraints of form $(y-x) \in [l,u]$, where $x,y \in V$ and $l,u \in \mathbb{R}$.
-    \item $E_P$ is a set of probabilistic time constraints of form $ (y-x) \sim D$ where $x \in V_C$, $y \in V_R$ and $D$ is some probability distribution. Additionally we require that each random time point is and end (a $y$ variable) of exactly one probabilistic constraint and vice versa. We can think of a probabilistic constraint as defining constraint for a random time point.
-    \end{itemize}
+\item \textbf{simple resource constraint} is a triplet $(x, y, r)$, where $x, y \in$ \texttt{nodes(ATN)} and $r$ is resource usage which can be positive (consumption) and negative (generation). For any time $s(x) \leq t \leq s(y)$ usage is equal to
+\[
+u(t) = r
+\]
+Where $s$ is a schedule. Intuitively, simple resource constraint encodes the fact that between time $s(x)$ and $s(y)$  resource is consumed (generated) at the rate $|r$| units of resource per unit time for positive (negative) $r$.
+\item \textbf{linear resource constraint} is a triplet $(x, y, r_b, r_e)$, where $x, y \in \texttt{nodes(ATN)}$ and resource usage at time $s(x) \leq t \leq s(y)$ is equal to
+\[
+    u(t) = r_b + t  \frac{r_e - r_b}{s(y) - s(x)}
+\]
+Intuitively, simple resource constraint encodes the fact that between time $s(x)$ and $s(y)$  resource is consumed/generated with rate that changes linearly between $s(x)$ and $s(y)$.
+\item \textbf{probabilistic simple resource constraint}
+Is an extension of simple resource constraint where $r$ is a random variable (and therefore so is $u(t)$).
+\item \textbf{probabilistic linear resource constraint}
+Is an extension of simple resource constraint where $r_b$ and $r_e$ are a random variables (and therefore so is $u(t)$).
 \end{itemize}
-In this paper we define network consuming single type of resource but extension to many resources is straightforward. Constraints are expressed by the following variables:
-\begin{itemize}
-\item A set of resource constraints $E_R$, each of which is of form $x \xrightarrow{D} y$ where $x,y \in V_C$ and $D$ is some distribution on resource usage. We allow positive as well as negative usage; the former means consumption rate and the latter means production rate between time points $x$ and $y$. Notice that for the purpose of this publication we do not allow to define resource usage for random time points.
-\end{itemize}
+Notice in particular that all the resource constraints are special cases of probabilistic linear resource constraint. Indeed, constant functions family is a subset of linear function family and the non-probabilistic versions of constraints can be though of as Dirac delta function probability distributions.
+\paragraph{Example} Describe solar panel example.
 
-\noindent Given a TRN $(V,E,r,R,R_E)$ we can define a \textbf{schedule} $s: V_c \rightarrow \mathbb{R}$, which is a function assigning execution time to controllable time points.
-\subsection{$p$-Strong Controllability}
-\cite{Fang2014} extended notion of strong controllability to pSTNs, which naturally carries on to TRN.  For a given schedule $s$ and assignment $a: V_R \rightarrow \mathbb{R}$ to random time points we can define probability of that assignment as
-\begin{align*}
-Pr(a) = \prod_{(y-x \sim D) \in E_P} Pr_D(a(y)-s(x))
-\end{align*}.
-Moreover we say assignment $a$ is \textbf{consistent} under schedule $s$ if it satisfies all the linear time constraints in $E_L$ i.e.
-\begin{align*}
-\forall_{(y-x \in [l,u]) \in E_L} l \leq A(y) - A(x) \leq u
-\end{align*}
-Where $A$ is defined as
-\begin{align*}
-A(x)=\begin{cases}
-s(x) & if\ x \in V_C\\
-a(x) & if\ x \in V_R
-\end{cases}
-\end{align*}
-We say that probability network is \textbf{$p$-strongly controllable} under schedule $s$ if with probability $p$ assignment $a$ is consistent under $s$.
 
 \subsection{$p$-Resource consistency}
 For a TRN we define resource usage as $u:E_R \rightarrow \mathbb{R}$. For resource usage we define its probability as a product of probabilities of every resource constraint taking that value (according to its distribution $D$).
@@ -124,7 +125,11 @@ Finally we say that network is \textbf{$p$-resource consistent} if under schedul
 The problem that we are solving in this paper is determining whether TRN is consistent under acceptable risk in resource in time i.e. if acceptable risk in time is $r_T$ and acceptable risk in resource is $r_R$ we would like to find a schedule $s$ such that network is $(1-r_T)$-strongly controllable and $(1-r_R)$-resource consistent. Even though we frame the problem in this way it is not hard to alter the algorithm to consider constraint on sum $r_T + r_R$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Algorithm}
-\blindtext[5]
+The algorithm rests on the following lemma:
+\begin{lemma}
+Given a $TRN$ and two schedules $A$ and $B$ that have the same ordering of timepoints, $A$ is resource consistent if and only if $B$ is resource consistent.
+\end{lemma}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EXPERIMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments}
 \blindtext[5]
