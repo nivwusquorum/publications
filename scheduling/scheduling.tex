@@ -2,6 +2,7 @@
 \usepackage[utf8]{inputenc}
 
 
+\usepackage[lined, boxed, linesnumbered]{algorithm2e}
 \usepackage{natbib}
 \usepackage{amsfonts}
 \usepackage{amsthm}
@@ -122,21 +123,72 @@ Where $R$ is a set of all the resource constraints and $x_i$, $y_i$ and $u_i$ ar
 \[
 \forall_{r \in R} \forall_{t} . U_s(t) \leq 0
 \]
-with probability $p$.
+with probability $p$. When dealing with the special case of non-probabilistic duration we drop the $p$ and talk about \textbf{resource-consistency} as for any non-zero value of $p$ the outcome is the same.
 
 \subsection{Time-resource consistency}
 The problem that we are solving in this paper is determining whether TRN is time-resource consistent. Before defining exactly what this means we prove the following lemma:
+
 \begin{lemma}
-Given a $TRN$ and two schedules $A$ and $B$ that have the same ordering of timepoints, $A$ is $p$-resource-consistent if and only if $B$ is $p$-resource-consistent.
+\label{resource_checking}
+Assume we have a TRN, such that ATN has explicit timepoints for start and end of the time horizon (can be $\pm \infty$).
+A schedule is resource-consistent if and only if
+\[
+\forall_{t \in \texttt{nodes(ATN)}} U_s(s(t)) \leq 0
+\]
+i.e. resource usage is not non-positive at all of the scheduled timepoints.
 \end{lemma}
 \begin{proof}
-TODO
+$\Rightarrow$ Trivial from definition of resource-consistency.
+$\Leftarrow$ We say a time $t \in \mathbb{R}$ is scheduled if there exists a timepoint  $x \in \texttt{nodes(ATN)}$ such that $t = s(x)$. We can rephrase right side of the lemma saying that for all the scheduled $t$ $U_s(t) \leq 0$. Assume that the right side of the implication is satisfied but the schedule is not resource consistent. That means that there exists a time point $t_{danger}$ which is not schduled for which $U_s(t_{danger}) > 0 $. Let $x$ be highest scheduled time less than $t_{danger}$ and let $y$ be smallest scheduled time higher than $t_{danger}$. We know that $U_s(t)$ for $x \leq t \leq y$ is a sum of linear functions (or possibly zero), which is itself a linear function. This means that either $U_s(x) \geq t_{danger}$ or $U_s(y) \geq t_{danger}$, so either $U_s(x) > 0$ or $U_s(y) > 0$. But both $x$ and $y$ are scheduled. Contradiction.
+
 \end{proof}
+\begin{corollary}
+Given a $TRN$ with only simple resource constraints and two schedules $A$ and $B$ that have the same ordering of timepoints, $A$ is $p$-resource-consistent if and only if $B$ is $p$-resource-consistent.
+\end{corollary}
+\begin{proof}
+Notice that if we move arbitrary timepoint, while preserving the relative ordering of timepoints, then net resource usage at that timepoint will not change (as the $U_s(t)$ between the neighboring timepoints remains constant). Therefore by lemma \ref{resource_checking} we can transform schedule $A$ into schedule $B$.
+\end{proof}
+Notice that the Corollary does not apply to the linear resource constraints (see fig. TODO).
+
+TODO: generalize to probabilistic
 
 Finally we say that a TRN is \textbf{$p$-time-resource consistent} if there exists and ordering of timepoints such that every schedule that satisfies this ordering is $p$-resource-consistent and $ATN$ extended with that ordering is $TC$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Algorithm}
+High level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line we iterate over all the permutations of the timepoints. On line 3 we use \texttt{p\_resource\_consistent} function to check resource consistency, performing this check is the nontrivial part of the algorithm. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_scts$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
+
+\begin{algorithm}[H]
+    \label{hl_algo}
+    \KwData{TRN and p}
+    \KwResult{true if TRN=(ATN, RC) is p-time-resource-consistent}
+    $N \leftarrow \texttt{nodes(ATN)}$\;
+    \For{$\sigma \leftarrow \text{permutation of } N$}{
+        \If{\texttt{p\_resource\_consistent(RC, $\sigma$, $p$)} }{
+            \If{TC(\texttt{extend(ATN, encode\_as\_scts($\sigma$))})}{
+                succeed\;
+            }
+        }
+    }
+    fail\;
+    \caption{Checking $p$-time-resource-consistency of a TRN }
+\end{algorithm}
+Implementation of \texttt{p\_resource\_consistent} follows from lemma \ref{resource_checking}.
+
+
+
+% INPUT: atn N, {src} S (spanning N.timepoints)
+% OUTPUT: scheduling strategy on N or fail
+% ALGORITHM:
+% X = subset of N.timepoints used by SRCs from S
+% for every permutation pi of X:
+% stcs = pi encoded by STCs
+% result = N.solve_with_stcs(stcs)
+% if result is schedule:
+%        return schedule
+%       fail
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EXPERIMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments}
