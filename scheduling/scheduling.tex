@@ -4,6 +4,7 @@
 
 \usepackage{natbib}
 \usepackage{amsfonts}
+\usepackage{amsthm}
 \usepackage{mathtools}
 \usepackage{graphicx}
 \usepackage{multicol}
@@ -21,7 +22,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FANCY HEADER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fancyhead{}
 \fancyfoot{}
-\fancyhead[C]{\bf Strong controllability with uncertainty in resource and time.}
+\fancyhead[C]{\bf Extending Temporal Networks with Probabilistic Resource Constraints.}
 \renewcommand{\headrulewidth}{1pt}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
@@ -33,7 +34,7 @@
 \begin{center}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TITLE PAGE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HRule \\[0.3cm]
-{\Large \bfseries Strong controllability with uncertainty in resource and time. \\[0.3cm]}
+{\Large \bfseries Extending Temporal Networks with Probabilistic Resource Constraints \\[0.3cm]}
 \HRule \\[0.5cm]
 
 \noindent
@@ -62,33 +63,34 @@ $\ $
 \begin{multicols}{2}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ABSTRACT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-\noindent \blindtext
+\noindent %\blindtext
 \end{abstract}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTRODUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
-\blindtext[5]
+%\blindtext[5]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RELATED WORK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work}
-\blindtext[5]
+%\blindtext[5]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEM STATEMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
-In this section we will define notion of a Time Resource Network (TRN) and the relevant constraint on TRN's schedule - Resource Consistency.
+In this section we will define notion of a Time Resource Network (TRN) and the relevant constraint on TRN's schedule - Resource Consistency. All the results presented in this paper scale to multiple different type of resources being constraint at the same time (electricity, water, fuel, cpu time, memory etc.), but to simplify the notation we will assume that only one type of resource is constrained.
 \subsection{Abstract Temporal Network}
 Since TRNs can operate on top of many different types of temporal networks, we define a notion of Abstract Temporal Network (ATN), to capture only the necessary properties. For abstract temporal network we define two pieces of functionality:
 \begin{enumerate}
 \item \texttt{nodes(ATN)}, which returns a set of timepoints in $ATN$
-\item \texttt{extend(ATN, $\{ stc_1, ... stc_n \} $)}, which takes ATN and set of simple temporal constraints [cite stn] spanning \texttt{nodes(ATN)}, and returns another $ATN'$, such that there exists a schedule satisfying $TC(ATN')$ if and only if there exists a schedule satisfying $TC(ATN)$ and the obeying set of simple temporal constraint $\{ stc_1, ... stc_n \} $.
+\item \texttt{extend(ATN, $\{ stc_1, ... stc_n \} $)}, which takes ATN and set of simple temporal constraints \cite{cervoni1993maintaining} spanning \texttt{nodes(ATN)}, and returns another $ATN'$, such that there exists a schedule satisfying $p-TC(ATN')$ if and only if there exists a schedule satisfying $p-TC(ATN)$ and the obeying set of simple temporal constraint $\{ stc_1, ... stc_n \} $. $p-TC$ is a notion of probabilistic temporal consistency described in section \ref{temporal_consistency}.
 \end{enumerate}
 As the following section describes in detail we will use \texttt{extend} to encode resource constraints over \texttt{nodes}.
-\subsection{Schedule}
-A schedule $s: \texttt{nodes(ATN)} \rightarrow \mathbb{R}$ is a mapping from abstract timepoints in ATN to concrete execution times.
 \subsection{Temporal Consistency}
-For an ATN we define a predicate $TC(s)$, where $s$ a schedule for that ATN. $TC(s)$ is true if we deem schedule acceptable (i.e. satisfying all the temporal constraints).
-\paragraph{Example} TODO: describe for PSTN
+\label{temporal_consistency}
+For an ATN we define a predicate $TC(ATN)$. $TC$ is true if we can find acceptable execution strategy for that network (what that means precisely depends on the ATN - we only require for it to be verifiable).
+\paragraph{Example} Let's consider cc-pSTP \cite{Fang2014} as an example. Here \texttt{nodes} returns set of \textit{activated} and \textit{received} timepoints. \texttt{extend} returns network with extra \textit{free contraints} encoding the simple temporal constraints. The temporal consistency check $TC$ is true if cc-pSTP has a solution.
 \subsection{Time Resource Network}
 A Time Resource Network $TRN = (ATN, {rc_1, ..., rc_n})$, where $ATN$ is an Abstract Temporal Network and ${rc_1, ..., rc_n}$ is a set of resource constraints. There are a few different types of resource constraints, but they all have a common property - they describe resource usage between two timepoints in \texttt{nodes(ATN)}.
+\subsection{Schedule}
+A schedule $s: \texttt{nodes(ATN)} \rightarrow \mathbb{R}$ is a mapping from abstract timepoints in ATN to concrete execution times.
 \subsection{Resource constraints}
 \begin{itemize}
 \item \textbf{simple resource constraint} is a triplet $(x, y, r)$, where $x, y \in$ \texttt{nodes(ATN)} and $r$ is resource usage which can be positive (consumption) and negative (generation). For any time $s(x) \leq t \leq s(y)$ usage is equal to
@@ -107,48 +109,43 @@ Is an extension of simple resource constraint where $r$ is a random variable (an
 Is an extension of simple resource constraint where $r_b$ and $r_e$ are a random variables (and therefore so is $u(t)$).
 \end{itemize}
 Notice in particular that all the resource constraints are special cases of probabilistic linear resource constraint. Indeed, constant functions family is a subset of linear function family and the non-probabilistic versions of constraints can be though of as Dirac delta function probability distributions.
+
 \paragraph{Example} Describe solar panel example.
 
 
 \subsection{$p$-Resource consistency}
-For a TRN we define resource usage as $u:E_R \rightarrow \mathbb{R}$. For resource usage we define its probability as a product of probabilities of every resource constraint taking that value (according to its distribution $D$).
-For a given schedule $s$ and usage $u$ let's define $U_u^s(t)$ as net usage of a resource at time $t$ under schedule $s$. More formally
+For a given schedule $s$ let's define random variable $U_s(t)$ as net usage of the resource at time $t$ under schedule $s$. More formally
 \[
-U_u^s(t) = \sum_{\forall_{c \in R_E}. s(x)\leq t \leq s(y)} u(c)
+U_s(t) = \sum_{\forall_{(x_i,y_i,u_i) \in R}. s(x_i)\leq t \leq s(y_i)} u_i(t)
 \]
-We say the network satisfy the network is \textbf{resource consistent} under schedule $s$ and usage $u$ if it newer uses more resources than limit, i.e.
+Where $R$ is a set of all the resource constraints and $x_i$, $y_i$ and $u_i$ are as described in section about linear resource constraints ($r_b$ and $r_e$ are encapsulated by $u$). We say the network satisfy the network is \textbf{$p$-resource consistent} under schedule $s$ if it newer uses more resources than limit, i.e.
 \[
-\forall_{r \in R} \forall_{t} . U_u^s(t) \leq 0
+\forall_{r \in R} \forall_{t} . U_s(t) \leq 0
 \]
-Finally we say that network is \textbf{$p$-resource consistent} if under schedule $s$ probability of $u$ being resource consistent is at least $p$.
-\subsection{The problem}
-The problem that we are solving in this paper is determining whether TRN is consistent under acceptable risk in resource in time i.e. if acceptable risk in time is $r_T$ and acceptable risk in resource is $r_R$ we would like to find a schedule $s$ such that network is $(1-r_T)$-strongly controllable and $(1-r_R)$-resource consistent. Even though we frame the problem in this way it is not hard to alter the algorithm to consider constraint on sum $r_T + r_R$.
+with probability $p$.
+
+\subsection{Time-resource consistency}
+The problem that we are solving in this paper is determining whether TRN is time-resource consistent. Before defining exactly what this means we prove the following lemma:
+\begin{lemma}
+Given a $TRN$ and two schedules $A$ and $B$ that have the same ordering of timepoints, $A$ is $p$-resource-consistent if and only if $B$ is $p$-resource-consistent.
+\end{lemma}
+\begin{proof}
+TODO
+\end{proof}
+
+Finally we say that a TRN is \textbf{$p$-time-resource consistent} if there exists and ordering of timepoints such that every schedule that satisfies this ordering is $p$-resource-consistent and $ATN$ extended with that ordering is $TC$.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Algorithm}
-The algorithm rests on the following lemma:
-\begin{lemma}
-Given a $TRN$ and two schedules $A$ and $B$ that have the same ordering of timepoints, $A$ is resource consistent if and only if $B$ is resource consistent.
-\end{lemma}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EXPERIMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments}
-\blindtext[5]
+%\blindtext[5]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FUTURE WORK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Future Work}
-\subsection{Conflict directed scheduling with resource limits(Peng and Szymon)}
-For a network which there does not exist an assignment to controllable time points that is consistent with both time and resource constraints we wish to provide find a conflict - a suggested change to problem formulation which bring it closer to feasible solution.
-\subsection{Possible extensions}
-Below are possible extensions. I think the first one is simple to solve. The 2nd and 3rd are potentially hard. The last one sounds extremely hard to solve in reasonable execution time even for small problems.
-\subsubsection{time-varying load profile}
-Variable load profile can be approximated by a piecewise constant function with a series of temporal constraints and resource usage information. Does \textbf{not} require augmenting problem definition
-\subsubsection{resource usage usage defined on random time points}
-Requires augmenting problem definition.
-\subsubsection{time-varying resource limit}
-Could also potentially be approximated by piecewise constant function. Requires augmenting problem definition.
-\subsubsection{stochastic resource limit}
-Could potentially simulate multiple high likelihood scenarios to estimate probability of failure. Requires augmenting problem definition.%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
-\blindtext[5]
+%\blindtext[5]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% REFERENCES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{References}
 
