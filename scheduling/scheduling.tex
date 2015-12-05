@@ -6,6 +6,7 @@
 \usepackage{natbib}
 \usepackage{amsfonts}
 \usepackage{amsthm}
+\usepackage{float}
 \usepackage{mathtools}
 \usepackage{graphicx}
 \usepackage{multicol}
@@ -54,7 +55,7 @@ Massachusetts Institute of Technology
 \textsc{sidor@mit.edu}\\
 \textsc{yupeng@mit.edu}\\
 \textsc{cfang@mit.edu}\\
-\textsc{derek.aylward@gmail.com}\\
+\textsc{williams@mit.edu}\\
 $\ $
 \end{flushright}
 \end{minipage}
@@ -78,7 +79,6 @@ $\ $
 One of the earliest mentions of a scheduling problem being solved in an algorithmic fashion can be found in \cite{johnson1954optimal}, although there's evidence that the problem was already considered in unpublished versions of \cite{bellman1956mathematical}. This publication considers the following statement of scheduling problem. We have $n$ items and $m$ stages and $A_{i,j}$ denoting the time for $i$-th item to be processed by stage $j$. All the items must be processed by different stages in order (for example first stage is printing of a book and second stage is binding). The publication considers $m=2$ and $m=3$ and arrives at the solution that \textit{``permits one to optimally arrange twenty production items in about five minutes by visual inspection''}. It turns out that the solution to the problem for $m \geq 3$ is NP-hard (\cite{garey1976complexity}). In \cite{wagner1959integer} an Integer Programming solution to the scheduling problem and noticed that it \textit{``is a single model which encompasses a wide variety of machine-scheduling situations''}.
 
 In \cite{pritsker1969multiproject} a generalization of scheduling problem is considered, which allows for multiple resource constraints. However the solution provided uses a discrete time formulation, which depending on required accuracy can substantially decrease performance. Work in this publication considers work on Temporal Networks, which explictly model continuous time constraints. In \cite{dechter1991temporal} a notion of Simple Temporal Problem was introduced which allows one to solve problem with simple temporal constraints of form $l \leq t_y - t_x \leq u$. This simple concept was later extended with various more sophisticated notions of temporal constraints. \cite{vidal1996dealing} defined the notion of uncertain temporal constraint, where the duration between two time events can take a value from an interval $[l,u]$ which is unknown during the time of scheduling (uncertain duration constraints); consistency of such temporal networks is called Strong Controllability. \cite{morris2001dynamic} desribes a pseudopolynamial algorithm for handling uncertain duration constraint, where we are allowed to make a descition scheduling decitions based on knowledge of uncertain durtions from the past (Dynamic controllability). His algorithm is later improved to polynamial complexity (\cite{morris2005temporal}). Finally, \cite{Fang2014} provides a non-linear optimization based solver for uncertain temporal constraints where the duration of the constraint can come from abritrary probabilistic distribution.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEM STATEMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
@@ -198,7 +198,31 @@ Implementation of \texttt{p\_resource\_consistent} follows from lemma \ref{resou
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EXPERIMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments}
-%\blindtext[5]
+
+\subsection{TRN over pSTN}
+To demonstrate extensibility of our approach we have implemented a version of TRN network, where the underlying temporal network is pSTN (\cite{Fang2014}). pSTN extends the notion of STN. For this discussion we define STN nodes and edges as \textbf{actiavated time points} and \textbf{free constraints} respectively. pSTN defines \textbf{received time point} which is determined by the environment. Every received time point is defined by corresponding \textbf{uncertain duration (uDn)} constraint, which specifies a probability distribution over duration between an activated time point and a received time point. Due to that extension, the notion of consistency becomes probabilistic; rather than asking \textit{is this pSTN consistent?}, we ask is \textit{is this pSTN consistent with probability $p$?}. Since pSTN is an extension of STN, it is an ATN.
+
+Let's consider the following Smart House scenario. We have $150W$ generator which is available. We know that the user comes back from work at some time defined by a gaussian distribution $N(5pm, 5m)$. Moreover we know that sun sets at time defined by $N(7pm, 1m)$. We would like to meet the following constraints with the overall probability at least $98\%$:
+\begin{itemize}
+\item Wash clothes (duration: $2h$, power usage: $130W$) before user comes back from work
+\item Cook dinner (duration: $30m$, power usage: $100W$) ready within 15 minutes of user coming back from work
+\item Have the lights on (power usage: $80W$) from before sunset to at least midnight.
+\item Cook a late night snack (duration: $30m$, power usage: $20W$) between 10pm and 11pm.
+\end{itemize}
+
+Our algorithm succesfully finds a solution to this scenario which meets the constraints with $p=$.  It is presented on fig. \ref{fig:pstnu_scheduling}.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.49\textwidth]{../pstnu_scheduling}
+\caption{Depiction of solution to TRN spanning a pSTN.}
+\label{fig:pstnu_scheduling}
+\end{center}
+\end{figure}
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FUTURE WORK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Future Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
