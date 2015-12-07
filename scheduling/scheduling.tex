@@ -84,58 +84,50 @@ In \cite{dechter1991temporal} a notion of Simple Temporal Problem was introduced
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEM STATEMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
-In this section we will define notion of a Time Resource Network (TRN) and the relevant constraint on TRN's schedule - Resource Consistency. All the results presented in this paper scale to multiple different type of resources being constraint at the same time (electricity, water, fuel, cpu time, memory etc.), but to simplify the notation we will assume that only one type of resource is constrained.
+In this section we will define notion of a Time Resource Network (TRN) and the relevant constraint on TRN's schedule - Resource Consistency. All the results presented in this paper can be extended to multiple different type of resources being constrained at the same time (electricity, water, fuel, cpu time, memory etc.), but to simplify the notation we will assume that only one type of resource is constrained.
 \subsection{Abstract Temporal Network}
 Since TRNs can operate on top of many different types of temporal networks, we define a notion of Abstract Temporal Network (ATN), to capture only the necessary properties. For abstract temporal network we define two pieces of functionality:
 \begin{enumerate}
 \item \texttt{nodes(ATN)}, which returns a set of timepoints in $ATN$
-\item \texttt{extend(ATN, $\{ stc_1, ... stc_n \} $)}, which takes ATN and set of simple temporal constraints \cite{cervoni1993maintaining} spanning \texttt{nodes(ATN)}, and returns another $ATN'$, such that there exists a schedule satisfying $p-TC(ATN')$ if and only if there exists a schedule satisfying $p-TC(ATN)$ and the obeying set of simple temporal constraint $\{ stc_1, ... stc_n \} $. $p-TC$ is a notion of probabilistic temporal consistency described in section \ref{temporal_consistency}.
+\item \texttt{extend(ATN, $\{ stc_1, ... stc_n \} $)}, which takes ATN and a set of simple temporal constraints (\cite{dechter1991temporal}) spanning \texttt{nodes(ATN)}, and returns another $ATN'$, such that there exists a schedule satisfying $TC(ATN')$ if and only if there exists a schedule satisfying $TC(ATN)$ and the obeying set of simple temporal constraint $\{ stc_1, ... stc_n \} $. $TC$ is a notion of probabilistic temporal consistency described in section \ref{temporal_consistency}.
 \end{enumerate}
 As the following section describes in detail we will use \texttt{extend} to encode resource constraints over \texttt{nodes}.
 \subsection{Temporal Consistency}
 \label{temporal_consistency}
 For an ATN we define a predicate $TC(ATN)$. $TC$ is true if we can find acceptable execution strategy for that network (what that means precisely depends on the ATN - we only require for it to be verifiable).
-\paragraph{Example} Let's consider cc-pSTP \cite{Fang2014} as an example. Here \texttt{nodes} returns set of \textit{activated} and \textit{received} timepoints. \texttt{extend} returns network with extra \textit{free contraints} encoding the simple temporal constraints. The temporal consistency check $TC$ is true if cc-pSTP has a solution.
-\subsection{Time Resource Network}
-A Time Resource Network $TRN = (ATN, {rc_1, ..., rc_n})$, where $ATN$ is an Abstract Temporal Network and ${rc_1, ..., rc_n}$ is a set of resource constraints. There are a few different types of resource constraints, but they all have a common property - they describe resource usage between two timepoints in \texttt{nodes(ATN)}.
+\paragraph{Example}
+Example network that satisfies the ATN interface is Simple Temporal Network with Uncertainty (STNU) described in \cite{vidal1996dealing}. Let $N$ be an STNU. Using the terminology from the paper \texttt{nodes($N$)} is the set of received and activated nodes and \texttt{extend($N$, $\{ stc_1, ... stc_n \} $)} augments $N$ with $stc_i$ encoded as a controllable link. One way to define is $TC(N)$ is to be true if and only if $N$ is strongly controllable.
+%Let's consider cc-pSTP \cite{Fang2014} as an example. Here \texttt{nodes} returns set of \textit{activated} and \textit{received} timepoints. \texttt{extend} returns network with extra \textit{free contraints} encoding the simple temporal constraints. The temporal consistency check $TC$ is true if cc-pSTP has a solution.
 \subsection{Schedule}
-A schedule $s: \texttt{nodes(ATN)} \rightarrow \mathbb{R}$ is a mapping from abstract timepoints in ATN to concrete execution times.
-\subsection{Resource constraints}
-\begin{itemize}
-\item \textbf{simple resource constraint} is a triplet $(x, y, r)$, where $x, y \in$ \texttt{nodes(ATN)} and $r$ is resource usage which can be positive (consumption) and negative (generation). For any time $s(x) \leq t \leq s(y)$ usage is equal to
-\[
-u(t) = r
-\]
-Where $s$ is a schedule. Intuitively, simple resource constraint encodes the fact that between time $s(x)$ and $s(y)$  resource is consumed (generated) at the rate $|r$| units of resource per unit time for positive (negative) $r$.
-\item \textbf{linear resource constraint} is a triplet $(x, y, r_b, r_e)$, where $x, y \in \texttt{nodes(ATN)}$ and resource usage at time $s(x) \leq t \leq s(y)$ is equal to
-\[
-    u(t) = r_b + t  \frac{r_e - r_b}{s(y) - s(x)}
-\]
-Intuitively, simple resource constraint encodes the fact that between time $s(x)$ and $s(y)$  resource is consumed/generated with rate that changes linearly between $s(x)$ and $s(y)$.
-\item \textbf{probabilistic simple resource constraint}
-Is an extension of simple resource constraint where $r$ is a random variable (and therefore so is $u(t)$).
-\item \textbf{probabilistic linear resource constraint}
-Is an extension of simple resource constraint where $r_b$ and $r_e$ are a random variables (and therefore so is $u(t)$).
-\end{itemize}
-Notice in particular that all the resource constraints are special cases of probabilistic linear resource constraint. Indeed, constant functions family is a subset of linear function family and the non-probabilistic versions of constraints can be though of as Dirac delta function probability distributions.
+A schedule $s: \texttt{nodes(ATN)} \rightarrow \mathbb{R}$ is a mapping from abstract time points in ATN to concrete execution times.
+\subsection{Time Resource Network}
+A Time Resource Network is described by a tuple $TRN = (ATN, R)$, where $ATN$ is an Abstract Temporal Network and $R={src_1, ..., src_n}$ is a set of \textbf{simple resource constraints}, each of which is a triplet $(x, y, r)$, where $x, y \in$ \texttt{nodes(ATN)} and $r$ is resource usage which can be positive (consumption) and negative (generation). Given a schedule $s$ for any time $t \in \mathbb{R}$ resource \textbf{usage} for that simple resource constraint $src=(x,y,r)$ is equal to
+\begin{align*}
+u_s(src, t) = \begin{cases}
+r & \text{if}\ s(x) \leq t \leq s(y)\\
+0 & \text{otherwise}
+\end{cases}
+\end{align*}
+Intuitively, simple resource constraint encodes the fact that between time $s(x)$ and $s(y)$  resource is consumed (generated) at the rate $|r|$ units of resource per unit time for positive (negative) $r$.
 
-\paragraph{Example} Describe solar panel example.
+Our notation is inspired by \cite{bartusch1988scheduling}. In particular notice that one can encode arbitrary piecewise-constant resource profile, by decomposing it into simple resource constraint expressing usages at every constant intervals and simple temporal constraints joining their ends (details can be found in \cite{bartusch1988scheduling}).
 
 
-\subsection{$p$-Resource consistency}
-For a given schedule $s$ let's define random variable $U_s(t)$ as net usage of the resource at time $t$ under schedule $s$. More formally
+\subsection{Resource consistency}
+For a schedule $s$ we define a \textbf{net-usage} at time $t \in \mathbb{R}$ as $U_s(t)$ in the following way:
 \[
-U_s(t) = \sum_{\forall_{(x_i,y_i,u_i) \in R}. s(x_i)\leq t \leq s(y_i)} u_i(t)
+U_s(t) = \sum_{\forall_{src_i \in R}} u_s(src_i, t)
 \]
-Where $R$ is a set of all the resource constraints and $x_i$, $y_i$ and $u_i$ are as described in section about linear resource constraints ($r_b$ and $r_e$ are encapsulated by $u$). We say the network satisfy the network is \textbf{$p$-resource consistent} under schedule $s$ if it newer uses more resources than limit, i.e.
+Where $R$ is a set of all the resource constraints and. We say the network is \textbf{resource consistent} under schedule $s$ if it newer uses more resources than limit, i.e.
 \[
-\forall_{r \in R} \forall_{t} . U_s(t) \leq 0
+\forall_{t} . U_s(t) \leq 0
 \]
-with probability $p$. When dealing with the special case of non-probabilistic duration we drop the $p$ and talk about \textbf{resource-consistency} as for any non-zero value of $p$ the outcome is the same.
-
+Informally what this means is that total usage never exceeds total generation.
 \subsection{Time-resource consistency}
-The problem that we are solving in this paper is determining whether TRN is time-resource consistent. Before defining exactly what this means we prove the following lemma:
+$TRN=(ATN, R)$ is \textbf{time-resource consistent} if it is resource consistent and $TC(ATN)$. Determining whether a TRN is time-resource consistent is the central problem tackled in this publication.
 
+\subsection{Properties of TRN}
+Before we proceed to describe algorithms for determining time-resource consistency it will be helpful to understand some properties that apply to every TRN.
 \begin{lemma}
 \label{resource_checking}
 Assume we have a TRN, such that ATN has explicit timepoints for start and end of the time horizon (can be $\pm \infty$).
@@ -227,6 +219,18 @@ Our algorithm successfully finds a solution to this scenario which meets the con
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FUTURE WORK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Future Work}
+\textbf{linear resource constraint} is a triplet $(x, y, r_b, r_e)$, where $x, y \in \texttt{nodes(ATN)}$ and resource usage at time $s(x) \leq t \leq s(y)$ is equal to
+\[
+    u(t) = r_b + t  \frac{r_e - r_b}{s(y) - s(x)}
+\]
+Intuitively, simple resource constraint encodes the fact that between time $s(x)$ and $s(y)$  resource is consumed/generated with rate that changes linearly between $s(x)$ and $s(y)$.
+
+\textbf{probabilistic simple resource constraint}
+Is an extension of simple resource constraint where $r$ is a random variable (and therefore so is $u(t)$).\section{Future Work}
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
 %\blindtext[5]
