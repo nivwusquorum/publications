@@ -44,8 +44,6 @@ Temporal Networks with Resource Constraints\\[0.3cm]}
 \begin{minipage}{0.5\textwidth}
 \begin{flushleft}
 \textbf{Szymon Sidor\\
-Peng Yu\\
-Cheng Fang\\
 Brian Williams}\\
 Massachusetts Institute of Technology
 \end{flushleft}
@@ -53,8 +51,6 @@ Massachusetts Institute of Technology
 \begin{minipage}{0.5\textwidth}
 \begin{flushright}
 \textsc{sidor@mit.edu}\\
-\textsc{yupeng@mit.edu}\\
-\textsc{cfang@mit.edu}\\
 \textsc{williams@mit.edu}\\
 $\ $
 \end{flushright}
@@ -66,12 +62,11 @@ $\ $
 \begin{multicols}{2}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ABSTRACT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-\noindent %\blindtext
+\noindent TODO
 \end{abstract}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% INTRODUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
-%\blindtext[5]
-
+TODO
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RELATED WORK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Related Work}
 %\blindtext[5]
@@ -192,6 +187,24 @@ Implementation of \texttt{p\_resource\_consistent} follows from lemma \ref{resou
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EXPERIMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments}
+\subsection{TRN over STN}
+
+\begin{figure*}
+\begin{center}
+\includegraphics[width=\textwidth]{../execution_time}
+\caption{Comporison of execution time for different types of networks, or \texttt{inf} if the solver failed to compute the result within time limit. Y axis represents the number of nodes in the temporal network ($N$). X axis represents the number of resource constraints ($R$). Top portion of the figure was obtained using the MIP-based solver, while bottom part of the figure was obtained using CP-based solver. The left side of the figure represents computations on \textit{sparse} networks, which in this case means that the total number of temporal constraints is $2N$. On the right side we have \textit{dense} networks, meaning that the number of temporal constraints is $N^2/2$.}
+\label{fig:execution_time}
+\end{center}
+\end{figure*}
+
+\begin{figure*}
+\begin{center}
+\includegraphics[width=\textwidth]{../when_better}
+\caption{Number on the figure represents execution time using CP-based algorithm divided by execution time using MIP-based algorithm. Notice that in particular $0$, means that MIP-based algorithm failed to compute the results within the time limit and \texttt{inf} means that CP-based algorithm timed out. The missing cells correspond to the networks where both of the algorithms timed out and therefore their execution time cannot be compared.   }
+\label{fig:when_better}
+\end{center}
+\end{figure*}
+
 
 \subsection{TRN over pSTN}
 To demonstrate extensibility of our approach we have implemented a version of TRN network, where the underlying temporal network is pSTN (\cite{Fang2014}). pSTN extends the notion of STN. For this discussion we define STN nodes and edges as \textbf{actiavated time points} and \textbf{free constraints} respectively. pSTN defines \textbf{received time point} which is determined by the environment. Every received time point is defined by corresponding \textbf{uncertain duration (uDn)} constraint, which specifies a probability distribution over duration between an activated time point and a received time point. Due to that extension, the notion of consistency becomes probabilistic; rather than asking \textit{is this pSTN consistent?}, we ask is \textit{is this pSTN consistent with probability $p$?}. Since pSTN is an extension of STN, it is an ATN.
@@ -226,17 +239,30 @@ Our algorithm successfully finds a solution to this scenario which meets the con
 Intuitively, simple resource constraint encodes the fact that between time $s(x)$ and $s(y)$  resource is consumed/generated with rate that changes linearly between $s(x)$ and $s(y)$.
 
 \textbf{probabilistic simple resource constraint}
-Is an extension of simple resource constraint where $r$ is a random variable (and therefore so is $u(t)$).\section{Future Work}
+Is an extension of simple resource constraint where $r$ is a random variable (and therefore so is $u(t)$).
 
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
-%\blindtext[5]
+TODO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Acknowledgements}
+I would like to thank Peng Yu for useful discussions on my overall approach and support. I would like to thank Cheng Fang for helping me understand pSTNs.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% REFERENCES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{References}
 
 \bibliography{references}
+\section*{Appendix A}
+Figure \ref{fig:execution_time} was computed by running the experiment for every set of parameters multiple times. Figure \ref{fig:std} shows the corresponding standard deviations that can be helpful when judging relevance of results.
+\begin{figure*}
+\begin{center}
+\includegraphics[width=\textwidth]{../std}
+\caption{A standard deviation of results from figure \ref{fig:execution_time}. They are laid out in the same way as on that figure.}
+\label{fig:std}
+\end{center}
+\end{figure*}
 \end{multicols}
 \end{document}
