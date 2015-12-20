@@ -79,7 +79,7 @@ In \cite{dechter1991temporal} a notion of Simple Temporal Problem was introduced
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PROBLEM STATEMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
-In this section we will define notion of a Time Resource Network (TRN) and the relevant constraint on TRN's schedule - Resource Consistency. All the results presented in this paper can be extended to multiple different type of resources being constrained at the same time (electricity, water, fuel, cpu time, memory etc.), but to simplify the notation we will assume that only one type of resource is constrained.
+In this section we will define notion of a Time Resource Network (TRN) and the relevant constraint on TRN's schedule - Resource Consistency. All the results presented in this paper can be extended to multiple different type of resources being constrained at the same time (electricity, water, fuel, cpu time, memory etc.), but to simplify the notation we will assume that only one type of resource is constrained. Additionally, for simplicity we only consider the problem of consistency, but the techniques presented in this paper can be easily extended to objective optimization over constrained schedules.
 \subsection{Abstract Temporal Network}
 Since TRNs can operate on top of many different types of temporal networks, we define a notion of Abstract Temporal Network (ATN), to capture only the necessary properties. For abstract temporal network we define two pieces of functionality:
 \begin{enumerate}
@@ -87,16 +87,17 @@ Since TRNs can operate on top of many different types of temporal networks, we d
 \item \texttt{extend(ATN, $\{ stc_1, ... stc_n \} $)}, which takes ATN and a set of simple temporal constraints (\cite{dechter1991temporal}) spanning \texttt{nodes(ATN)}, and returns another $ATN'$, such that there exists a schedule satisfying $TC(ATN')$ if and only if there exists a schedule satisfying $TC(ATN)$ and the obeying set of simple temporal constraint $\{ stc_1, ... stc_n \} $. $TC$ is a notion of probabilistic temporal consistency described in section \ref{temporal_consistency}.
 \end{enumerate}
 As the following section describes in detail we will use \texttt{extend} to encode resource constraints over \texttt{nodes}.
+\subsection{Schedule}
+A schedule $s: \texttt{nodes(ATN)} \rightarrow \mathbb{R}$ is a mapping from abstract time points in ATN to concrete execution times.
 \subsection{Temporal Consistency}
 \label{temporal_consistency}
-For an ATN we define a predicate $TC(ATN)$. $TC$ is true if we can find acceptable execution strategy for that network (what that means precisely depends on the ATN - we only require for it to be verifiable).
+For an ATN we define a predicate $TC_s(ATN)$, which means that $ATN$ is \textbf{temporally consistent} under schedule $s$. $TC_s$ is true if schedule $s$ satisfies all the constraints of the $ATN$ (what that means precisely depends on the $ATN$ - we only require for it to be verifiable). We say that that $TC(ATN)$ which means that there exists at schedule $s$ such that $TC_s(ATN)$.
 \paragraph{Example}
 Example network that satisfies the ATN interface is Simple Temporal Network with Uncertainty (STNU) described in \cite{vidal1996dealing}. Let $N$ be an STNU. Using the terminology from the paper \texttt{nodes($N$)} is the set of received and activated nodes and \texttt{extend($N$, $\{ stc_1, ... stc_n \} $)} augments $N$ with $stc_i$ encoded as a controllable link. One way to define is $TC(N)$ is to be true if and only if $N$ is strongly controllable.
 %Let's consider cc-pSTP \cite{Fang2014} as an example. Here \texttt{nodes} returns set of \textit{activated} and \textit{received} timepoints. \texttt{extend} returns network with extra \textit{free contraints} encoding the simple temporal constraints. The temporal consistency check $TC$ is true if cc-pSTP has a solution.
-\subsection{Schedule}
-A schedule $s: \texttt{nodes(ATN)} \rightarrow \mathbb{R}$ is a mapping from abstract time points in ATN to concrete execution times.
 \subsection{Time Resource Network}
-A Time Resource Network is described by a tuple $TRN = (ATN, R)$, where $ATN$ is an Abstract Temporal Network and $R={src_1, ..., src_n}$ is a set of \textbf{simple resource constraints}, each of which is a triplet $(x, y, r)$, where $x, y \in$ \texttt{nodes(ATN)} and $r$ is resource usage which can be positive (consumption) and negative (generation). Given a schedule $s$ for any time $t \in \mathbb{R}$ resource \textbf{usage} for that simple resource constraint $src=(x,y,r)$ is equal to
+\label{sec:trn_definition}
+A Time Resource Network is described by a tuple $TRN = (ATN, R)$, where $ATN$ is an Abstract Temporal Network and $R={src_1, ..., src_n}$ is a set of \textbf{simple resource constraints}, each of which is a triplet $(x, y, r)$, where $x, y \in$ \texttt{nodes(ATN)} and $r \in \mathbb{R}$ is resource usage which can be positive (consumption) and negative (generation). Given a schedule $s$ for any time $t \in \mathbb{R}$ resource \textbf{usage} for that simple resource constraint $src=(x,y,r)$ is equal to
 \begin{align*}
 u_s(src, t) = \begin{cases}
 r & \text{if}\ s(x) \leq t \leq s(y)\\
@@ -113,13 +114,13 @@ For a schedule $s$ we define a \textbf{net-usage} at time $t \in \mathbb{R}$ as 
 \[
 U_s(t) = \sum_{\forall_{src_i \in R}} u_s(src_i, t)
 \]
-Where $R$ is a set of all the resource constraints and. We say the network is \textbf{resource consistent} under schedule $s$ if it newer uses more resources than limit, i.e.
+Where $R$ is a set of all the resource constraints and. We say that the network is \textbf{resource consistent} under schedule $s$ when it satisfies predicate $RC_s(TRN)$, i.e.
 \[
 \forall_{t} . U_s(t) \leq 0
 \]
-Informally what this means is that total usage never exceeds total generation.
+Intuitively it means that resource is never consumed at a rate which is greater than the generation rate. We say that $TRN$ is resource consistent is there exists $s$ such that $RC_s(TRN)$.
 \subsection{Time-resource consistency}
-$TRN=(ATN, R)$ is \textbf{time-resource consistent} if it is resource consistent and $TC(ATN)$. Determining whether a TRN is time-resource consistent is the central problem tackled in this publication.
+$TRN=(ATN, R)$ is \textbf{time-resource consistent} if there exists a schedule $s$ such that $RC_s(TRN) \wedge TC_s(ATN)$. Determining whether a $TRN$ is time-resource consistent is the central problem tackled in this publication.
 
 \subsection{Properties of TRN}
 Before we proceed to describe algorithms for determining time-resource consistency it will be helpful to understand some properties that apply to every TRN.
@@ -127,9 +128,9 @@ Before we proceed to describe algorithms for determining time-resource consisten
 \label{resource_checking}
 Assume we have a TRN, such that ATN has explicit timepoints for start and end of the time horizon (can be $\pm \infty$).
 A schedule is resource-consistent if and only if
-\[
-\forall_{t \in \texttt{nodes(ATN)}} U_s(s(t)) \leq 0
-\]
+\begin{align}
+\label{eq:resource_consistency}\forall_{t \in \texttt{nodes(ATN)}} U_s(s(t)) \leq 0
+\end{align}
 i.e. resource usage is not non-positive at all of the scheduled timepoints.
 \end{lemma}
 \begin{proof}
@@ -149,8 +150,47 @@ TODO: generalize to probabilistic
 
 Finally we say that a TRN is \textbf{$p$-time-resource consistent} if there exists and ordering of timepoints such that every schedule that satisfies this ordering is $p$-resource-consistent and $ATN$ extended with that ordering is $TC$.
 
+\subsection{Common scheduling problems expressed as Time Resource Network}
+
+\subsection{Going beyond schedules}
+TODO: execution strategies
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Algorithm}
+\section{Approach}
+In this section be present two alternative approaches to solving the problem. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Satisfaction Problem (CSP) formulations.
+\subsection{Mixed Integer Programming based algorithm}
+Mixed Integer Programming (\cite{markowitz1957solution}) is a very natural way of expressing scheduling problems. It's flexibility and efficiency causes many researchers to choose this method to tackle scheduling problems. In this section we present a way to formulate TRN as a MIP problem. Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let $TC-fromulation(ATN)$ be a MIP-formulation that is consistent if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied. To help use define the MIP-formulation concisely let's introduce resource-change at timepoint $n$ as:
+\begin{align*}
+\Delta(n) = \sum_{(x_i, y_i, r_i) \in R, x_i = n} r_i + \sum_{(x_i, y_i, r_i) \in R, y_i = n} -r_i
+\end{align*}
+Also let's denote all the timepoints relevant for resource constraints as $RT \subseteq nodes(ATN)$, i.e.
+\begin{align*}
+RT = \{ x_i | (x_i, y_i, r_i) \in R \} \cup \{ y_i | (x_i, y_i, r_i) \in R \}
+\end{align*}
+Intuitively $\Delta(n)$ is the amount by which resource usage changes after time $s(n)$ under schedule $s$.
+
+We propose the following formulation:
+\begin{align}
+\label{eq:mip0} & \forall_{t \in nodes(ATN)}.              & 0 \leq t \leq M \\
+\label{eq:mip1} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & t_1 - t_2 \geq - x_{t_1,t_2} M \\
+\label{eq:mip2} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & t_1 - t_2 \leq (1.0 - x_{t_1,t_2}) M\\
+\label{eq:mip3} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & x_{t_1,t_2} + x_{t_2,t_1}  = 1\\
+\label{eq:mip4} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & x_{t_1,t_2} \in \{ 0, 1 \} \\
+\label{eq:mip5} & \forall_{t_1 \in RT}.                    & \sum_{t_2 \in RT} x_{t_2, t_1} \Delta(t_2) \leq 0\\
+\label{eq:mip6} & \text{TC-fromulation(ATN)}
+\end{align}
+
+Variable $M$ denotes the time horizon, such that all the variables are scheduled between $0$ and $M$. This definition is imposed in eq. \ref{eq:mip0}.
+Variables $x_{t_1,t_2}$ are order variables, i.e.
+\begin{align*}
+x_{t_1, t_2} = \begin{cases}
+1 &\text{ if }s(t_1) \leq s(t_2) \\
+0 &\text{ otherwise}
+\end{cases}
+\end{align*}
+Equations \ref{eq:mip1}, \ref{eq:mip2}, \ref{eq:mip3}, \ref{eq:mip4} enforce that definition. In particular equations \ref{eq:mip1}, \ref{eq:mip2} enforce the ordering using big-$M$ formulation that is correct because of time horizon constraint. In theory eq. \ref{eq:mip3} could be eliminated by careful use of $\epsilon$ (making sure no two timepoints are scheduled at exactly the same time), but we found that in practice they result in useful cutting planes that decrease the total runtime. Equation \ref{eq:mip5} ensures resource consistency by lemma \ref{resource_checking}. Finally eq. \ref{eq:mip6} ensures time consistency.
+
+\subsection{Constraint Satisfaction Programming based algorithm}
 High level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line we iterate over all the permutations of the timepoints. On line 3 we use \texttt{p\_resource\_consistent} function to check resource consistency, performing this check is the nontrivial part of the algorithm. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_scts$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
 
 \begin{algorithm}[H]
