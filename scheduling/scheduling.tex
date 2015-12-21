@@ -100,7 +100,7 @@ Example network that satisfies the ATN interface is Simple Temporal Network with
 A Time Resource Network is described by a tuple $TRN = (ATN, R)$, where $ATN$ is an Abstract Temporal Network and $R={src_1, ..., src_n}$ is a set of \textbf{simple resource constraints}, each of which is a triplet $(x, y, r)$, where $x, y \in$ \texttt{nodes(ATN)} and $r \in \mathbb{R}$ is resource usage which can be positive (consumption) and negative (generation). Given a schedule $s$ for any time $t \in \mathbb{R}$ resource \textbf{usage} for that simple resource constraint $src=(x,y,r)$ is equal to
 \begin{align*}
 u_s(src, t) = \begin{cases}
-r & \text{if}\ s(x) \leq t \leq s(y)\\
+r & \text{if}\ s(x) \leq t < s(y)\\
 0 & \text{otherwise}
 \end{cases}
 \end{align*}
@@ -115,10 +115,10 @@ For a schedule $s$ we define a \textbf{net-usage} at time $t \in \mathbb{R}$ as 
 U_s(t) = \sum_{\forall_{src_i \in R}} u_s(src_i, t)
 \]
 Where $R$ is a set of all the resource constraints and. We say that the network is \textbf{resource consistent} under schedule $s$ when it satisfies predicate $RC_s(TRN)$, i.e.
-\[
-\forall_{t} . U_s(t) \leq 0
-\]
-Intuitively it means that resource is never consumed at a rate which is greater than the generation rate. We say that $TRN$ is resource consistent is there exists $s$ such that $RC_s(TRN)$.
+\begin{align}
+\label{usage_for_all}\forall_{t \in {\mathbb{R} - C}} . U_s(t) \leq 0
+\end{align}
+where $C$ is some \textit{finite} set of real numbers. Intuitively it means that resource is never consumed at a rate which is greater than the generation rate. Set $C$ is introduced to make it easier to prove some properties, but is of no practical significance - notice that regardless of the contents of $C$ above statement is true 100 \% of time - there exists no finite interval where $U_s > 0$. We say that $TRN$ is resource consistent is there exists $s$ such that $RC_s(TRN)$.
 \subsection{Time-resource consistency}
 $TRN=(ATN, R)$ is \textbf{time-resource consistent} if there exists a schedule $s$ such that $RC_s(TRN) \wedge TC_s(ATN)$. Determining whether a $TRN$ is time-resource consistent is the central problem tackled in this publication.
 
@@ -126,19 +126,19 @@ $TRN=(ATN, R)$ is \textbf{time-resource consistent} if there exists a schedule $
 Before we proceed to describe algorithms for determining time-resource consistency it will be helpful to understand some properties that apply to every TRN.
 \begin{lemma}
 \label{resource_checking}
-Assume we have a TRN, such that ATN has explicit timepoints for start and end of the time horizon (can be $\pm \infty$).
-A schedule is resource-consistent if and only if
+For a $TRN$ a schedule $s$ is practically-resource-consistent if and only if
 \begin{align}
-\label{eq:resource_consistency}\forall_{t \in \texttt{nodes(ATN)}} U_s(s(t)) \leq 0
+\label{eq:resource_consistency}\forall_{t \in \texttt{nodes(ATN)}} \lim_{\epsilon \to 0} U_s(s(t) + \epsilon) \leq 0
 \end{align}
-i.e. resource usage is not non-positive at all of the scheduled timepoints.
+i.e. resource usage is not non-positive a moment after all of the scheduled timepoints.
 \end{lemma}
 \begin{proof}
 $\Rightarrow$ Trivial from definition of resource-consistency.
-$\Leftarrow$ We say a time $t \in \mathbb{R}$ is scheduled if there exists a timepoint  $x \in \texttt{nodes(ATN)}$ such that $t = s(x)$. We can rephrase right side of the lemma saying that for all the scheduled $t$ $U_s(t) \leq 0$. Assume that the right side of the implication is satisfied but the schedule is not resource consistent. That means that there exists a time point $t_{danger}$ which is not schduled for which $U_s(t_{danger}) > 0 $. Let $x$ be highest scheduled time less than $t_{danger}$ and let $y$ be smallest scheduled time higher than $t_{danger}$. We know that $U_s(t)$ for $x \leq t \leq y$ is a sum of linear functions (or possibly zero), which is itself a linear function. This means that either $U_s(x) \geq t_{danger}$ or $U_s(y) \geq t_{danger}$, so either $U_s(x) > 0$ or $U_s(y) > 0$. But both $x$ and $y$ are scheduled. Contradiction.
+$\Leftarrow$ We say a time $t \in \mathbb{R}$ is scheduled if there exists a timepoint  $x \in \texttt{nodes(ATN)}$ such that $t = s(x)$. Assume that the right side of the implication is satisfied but the schedule is not resource consistent. That means that there exists a time point $t_{danger}$ for which $U_s(s(t_{danger})) > 0 $. We will only consider the case where $t_{danger}$ is \textbf{not} scheduled (because there are finitely many scheduled timepoints, we can consider them members of $C$). Let $t_{before}$ be the highest scheduled timepoint that is smaller than $t_{danger}$. Notice that if no such timepoint exist, this means that there's no resource constraint $(x,y,r)$ such that $s(x) \leq t_{danger} < s(y)$, so $U_s(s(t_{danger}))=0 $ . We can therefore assume that $t_{before}$ exists. Notice that by definition of $t_{before}$ and simple resource constraints, $U_s(t)$ for $t_{before} < t \leq t_{danger}$ is constant, therefore $U_s(s(t_{danger})) = \lim_{\epsilon \to 0} U_s(s(t_{before}) + \epsilon) > 0$. Contradiction.
 
 \end{proof}
 \begin{corollary}
+\label{cor:ordering}
 Given a $TRN$ with only simple resource constraints and two schedules $A$ and $B$ that have the same ordering of timepoints, $A$ is $p$-resource-consistent if and only if $B$ is $p$-resource-consistent.
 \end{corollary}
 \begin{proof}
@@ -190,16 +190,18 @@ x_{t_1, t_2} = \begin{cases}
 \end{align*}
 Equations \ref{eq:mip1}, \ref{eq:mip2}, \ref{eq:mip3}, \ref{eq:mip4} enforce that definition. In particular equations \ref{eq:mip1}, \ref{eq:mip2} enforce the ordering using big-$M$ formulation that is correct because of time horizon constraint. In theory eq. \ref{eq:mip3} could be eliminated by careful use of $\epsilon$ (making sure no two timepoints are scheduled at exactly the same time), but we found that in practice they result in useful cutting planes that decrease the total runtime. Equation \ref{eq:mip5} ensures resource consistency by lemma \ref{resource_checking}. Finally eq. \ref{eq:mip6} ensures time consistency.
 
+Solving that mixed-integer program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in nodes(ATN)$.
+
 \subsection{Constraint Satisfaction Programming based algorithm}
-High level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line we iterate over all the permutations of the timepoints. On line 3 we use \texttt{p\_resource\_consistent} function to check resource consistency, performing this check is the nontrivial part of the algorithm. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_scts$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
+High level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line we iterate over all the permutations of the timepoints. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, performing this check is the nontrivial part of the algorithm. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_scts$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
 
 \begin{algorithm}[H]
     \label{hl_algo}
     \KwData{TRN and p}
-    \KwResult{true if TRN=(ATN, RC) is p-time-resource-consistent}
+    \KwResult{true if TRN=(ATN, R) is p-time-resource-consistent}
     $N \leftarrow \texttt{nodes(ATN)}$\;
     \For{$\sigma \leftarrow \text{permutation of } N$}{
-        \If{\texttt{p\_resource\_consistent(RC, $\sigma$, $p$)} }{
+        \If{\texttt{resource\_consistent(R, $\sigma$)} }{
             \If{TC(\texttt{extend(ATN, encode\_as\_scts($\sigma$))})}{
                 succeed\;
             }
