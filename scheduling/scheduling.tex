@@ -149,17 +149,18 @@ Notice that if we move arbitrary timepoint, while preserving the relative orderi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Approach}
-In this section be present two alternative approaches to solving the problem. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Satisfaction Problem (CSP) formulations.
-\subsection{Mixed Integer Programming based algorithm}
-Mixed Integer Programming (\cite{markowitz1957solution}) is a very natural way of expressing scheduling problems. It's flexibility and efficiency causes many researchers to choose this method to tackle scheduling problems. In this section we present a way to formulate TRN as a MIP problem. Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let $TC-fromulation(ATN)$ be a MIP-formulation that is consistent if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied. To help use define the MIP-formulation concisely let's introduce resource-change at timepoint $n$ as:
-\begin{align*}
-\Delta(n) = \sum_{(x_i, y_i, r_i) \in R, x_i = n} r_i + \sum_{(x_i, y_i, r_i) \in R, y_i = n} -r_i
-\end{align*}
-Also let's denote all the timepoints relevant for resource constraints as $RT \subseteq nodes(ATN)$, i.e.
+In this section be present two alternative approaches to solving the problem. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Satisfaction Problem (CSP) formulations. For both algorithm the following definitions will be useful.
+Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let's denote all the timepoints relevant for resource constraints as $RT \subseteq nodes(ATN)$, i.e.
 \begin{align*}
 RT = \{ x_i | (x_i, y_i, r_i) \in R \} \cup \{ y_i | (x_i, y_i, r_i) \in R \}
 \end{align*}
+Additionally, let's introduce resource-change at timepoint $n \in nodes(ATN)$ as:
+\begin{align*}
+\Delta(n) = \sum_{(x_i, y_i, r_i) \in R, x_i = n} r_i + \sum_{(x_i, y_i, r_i) \in R, y_i = n} -r_i
+\end{align*}
 Intuitively $\Delta(n)$ is the amount by which resource usage changes after time $s(n)$ under schedule $s$.
+\subsection{Mixed Integer Programming based algorithm}
+Mixed Integer Programming (\cite{markowitz1957solution}) is a very natural way of expressing scheduling problems. It's flexibility and efficiency causes many researchers to choose this method to tackle scheduling problems. In this section we present a way to formulate TRN as a MIP problem.  Let $TC-fromulation(ATN)$ be a MIP-formulation that is consistent if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied.
 
 We propose the following formulation:
 \begin{align}
@@ -185,12 +186,12 @@ Equations \ref{eq:mip1}, \ref{eq:mip2}, \ref{eq:mip3}, \ref{eq:mip4} enforce tha
 Solving that mixed-integer program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in nodes(ATN)$.
 
 \subsection{Constraint Satisfaction Programming based algorithm}
-High level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line we iterate over all the permutations of the timepoints. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, performing this check is the nontrivial part of the algorithm. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_scts$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
+High level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line we iterate over all the permutations of the timepoints. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, which by corollary \ref{cor:ordering} is only dependent on the chosen permutation. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_scts$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
 
 \begin{algorithm}[H]
     \label{hl_algo}
-    \KwData{TRN and p}
-    \KwResult{true if TRN=(ATN, R) is p-time-resource-consistent}
+    \KwData{TRN}
+    \KwResult{true if TRN=(ATN, R) is time-resource-consistent}
     $N \leftarrow \texttt{nodes(ATN)}$\;
     \For{$\sigma \leftarrow \text{permutation of } N$}{
         \If{\texttt{resource\_consistent(R, $\sigma$)} }{
@@ -202,10 +203,17 @@ High level idea of the algorithm is quite simple and is presented in algorithm \
     fail\;
     \caption{Checking $p$-time-resource-consistency of a TRN }
 \end{algorithm}
-Implementation of \texttt{p\_resource\_consistent} follows from lemma \ref{resource_checking}.
+Implementation of \texttt{resource\_consistent} follows from lemma \ref{resource_checking} and is fairly straightforward - we can evaluate $\lim_{\epsilon \to 0} U_s(s(t) + \epsilon)$ for all the scheduled timepoints only knowing their relative ordering, if it is always non-positive then we return true.
+
+To improve the performance w.r.t algorithm \ref{hl_algo} we use off-the-shelf constraint propagation software. Let's consider $RT={t_1, ..., t_N}$. We define a problem using $N$ variables:  $x_1, x_2, ..., x_N \in \{ 1, ..., N \}$, such that $x_j=i$ if $t_i$ is $j$-th in the temporal order, i.e. $x_1, ..., x_N$ represent the permutation $\sigma$. We used the following pruners which, when combined, make the CSP equaivalent to algorithm \ref{hl_algo}:
+\begin{itemize}
+\item \textbf{all\_different\_constraint} - ensure that all variables are different, i.e. the actually represent the permutation. This is standard constraint available in most CSP software packages.
+\item \textbf{time\_consistent} - making sure that the temporal constraints implied by the permutation are not making the $ATN$ inconsistent. Even if the variables are partially instantiated we can compute the all the temporal constraints implied by the permutation. For example if we only know that $x_1 = 3$, $x_5 = 2$ and $x_6=5$, that implies $t_5 \leq t_1 \leq t_6$.
+\item \textbf{resource\_consistent} - ensure that for all $t_1, ..., t_n$, resource usage just after $t_i$ is non-positive. Even if the order is partially specified we can still evaluate it. The tricky part is we need to assume that all the timepoints for which $x_i$ is undergined and which are generating ($\delta(t_i) < 0$) could be scheduled before all the points for which order is defined. For exmaple if $N = 4$ and $\Delta(t_1) = 4$, $\Delta(t_2) = -6$, $\Delta(t_3) = 3$, $\Delta(t_4) = 4$ and we only know that $x_1 = 3$, $x_3 = 2$. The we have to assume that all the generation happened before the points that we know, i.e. initially resource usage is $-6$, then after $t_3$ is is $-3$, and after $t_1$ it is $1$, therefore violating the constraint. But if in that scenario we would instead have $\Delta(t_1) = 2$ and we hadn't had assumed that all the unscheduled generation $-6$ happens at the beginning, we would have falsely deduced that the given variable assignment could never be made resource consistent.  
+\end{itemize}
 
 \subsubsection{Going beyond schedules}
-TODO: we can do crazy shit, but it needs to be satisfied for a particular schedule. 
+TODO: we can do crazy shit, but it needs to be satisfied for a particular schedule.
 
 
 % INPUT: atn N, {src} S (spanning N.timepoints)
