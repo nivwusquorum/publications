@@ -142,18 +142,10 @@ $\Leftarrow$ We say a time $t \in \mathbb{R}$ is scheduled if there exists a tim
 Given a $TRN$ with only simple resource constraints and two schedules $A$ and $B$ that have the same ordering of timepoints, $A$ is $p$-resource-consistent if and only if $B$ is $p$-resource-consistent.
 \end{corollary}
 \begin{proof}
-Notice that if we move arbitrary timepoint, while preserving the relative ordering of timepoints, then net resource usage at that timepoint will not change (as the $U_s(t)$ between the neighboring timepoints remains constant). Therefore by lemma \ref{resource_checking} we can transform schedule $A$ into schedule $B$.
+Notice that if we move arbitrary timepoint, while preserving the relative ordering of timepoints, then net resource usage moment after that timepoint will not change (as the $U_s(t)$ between the neighboring timepoints remains constant). Therefore by lemma \ref{resource_checking} we can transform schedule $A$ into schedule $B$.
 \end{proof}
-Notice that the Corollary does not apply to the linear resource constraints (see fig. TODO).
 
-TODO: generalize to probabilistic
-
-Finally we say that a TRN is \textbf{$p$-time-resource consistent} if there exists and ordering of timepoints such that every schedule that satisfies this ordering is $p$-resource-consistent and $ATN$ extended with that ordering is $TC$.
-
-\subsection{Common scheduling problems expressed as Time Resource Network}
-
-\subsection{Going beyond schedules}
-TODO: execution strategies
+%\subsection{Common scheduling problems expressed as Time Resource Network}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ALGORITHM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Approach}
@@ -212,6 +204,8 @@ High level idea of the algorithm is quite simple and is presented in algorithm \
 \end{algorithm}
 Implementation of \texttt{p\_resource\_consistent} follows from lemma \ref{resource_checking}.
 
+\subsubsection{Going beyond schedules}
+TODO: we can do crazy shit, but it needs to be satisfied for a particular schedule. 
 
 
 % INPUT: atn N, {src} S (spanning N.timepoints)
