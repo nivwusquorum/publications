@@ -1,10 +1,10 @@
 \section{Approach}
 In this section be present two alternative approaches to solving the problem. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Satisfaction Problem (CSP) formulations. For both algorithm the following definitions will be useful.
-Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let's denote all the timepoints relevant for resource constraints as $RT \subseteq nodes(ATN)$, i.e.
+Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let's denote all the timepoints relevant for resource constraints as $RT \subseteq events(ATN)$, i.e.
 \begin{align*}
 RT = \{ x_i | (x_i, y_i, r_i) \in R \} \cup \{ y_i | (x_i, y_i, r_i) \in R \}
 \end{align*}
-Additionally, let's introduce resource-change at timepoint $n \in nodes(ATN)$ as:
+Additionally, let's introduce resource-change at timepoint $n \in events(ATN)$ as:
 \begin{align*}
 \Delta(n) = \sum_{(x_i, y_i, r_i) \in R, x_i = n} r_i + \sum_{(x_i, y_i, r_i) \in R, y_i = n} -r_i
 \end{align*}
@@ -14,7 +14,7 @@ Mixed Integer Programming (\cite{markowitz1957solution}) is a very natural way o
 
 We propose the following formulation:
 \begin{align}
-\label{eq:mip0} & \forall_{t \in nodes(ATN)}.              & 0 \leq t \leq M \\
+\label{eq:mip0} & \forall_{t \in events(ATN)}.              & 0 \leq t \leq M \\
 \label{eq:mip1} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & t_1 - t_2 \geq - x_{t_1,t_2} M \\
 \label{eq:mip2} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & t_1 - t_2 \leq (1.0 - x_{t_1,t_2}) M\\
 \label{eq:mip3} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & x_{t_1,t_2} + x_{t_2,t_1}  = 1\\
@@ -33,7 +33,7 @@ x_{t_1, t_2} = \begin{cases}
 \end{align*}
 Equations \ref{eq:mip1}, \ref{eq:mip2}, \ref{eq:mip3}, \ref{eq:mip4} enforce that definition. In particular equations \ref{eq:mip1}, \ref{eq:mip2} enforce the ordering using big-$M$ formulation that is correct because of time horizon constraint. In theory eq. \ref{eq:mip3} could be eliminated by careful use of $\epsilon$ (making sure no two timepoints are scheduled at exactly the same time), but we found that in practice they result in useful cutting planes that decrease the total runtime. Equation \ref{eq:mip5} ensures resource consistency by lemma \ref{resource_checking}. Finally eq. \ref{eq:mip6} ensures time consistency.
 
-Solving that mixed-integer program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in nodes(ATN)$.
+Solving that mixed-integer program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in events(ATN)$.
 
 \subsection{Constraint Satisfaction Programming based algorithm}
 High level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line we iterate over all the permutations of the timepoints. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, which by corollary \ref{cor:ordering} is only dependent on the chosen permutation. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_scts$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
@@ -42,7 +42,7 @@ High level idea of the algorithm is quite simple and is presented in algorithm \
     \label{hl_algo}
     \KwData{TRN}
     \KwResult{true if TRN=(ATN, R) is time-resource-consistent}
-    $N \leftarrow \texttt{nodes(ATN)}$\;
+    $N \leftarrow \texttt{events(ATN)}$\;
     \For{$\sigma \leftarrow \text{permutation of } N$}{
         \If{\texttt{resource\_consistent(R, $\sigma$)} }{
             \If{TC(\texttt{extend(ATN, encode\_as\_scts($\sigma$))})}{
