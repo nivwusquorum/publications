@@ -2,8 +2,8 @@
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=\textwidth]{execution_time}
-\caption{Comporison of execution time for different types of networks, or \texttt{inf} if the solver failed to compute the result within time limit. Y axis represents the number of nodes in the temporal network ($N$). X axis represents the number of resource constraints ($R$). Top portion of the figure was obtained using the MIP-based solver, while bottom part of the figure was obtained using CSP-based solver. The left side of the figure represents computations on \textit{sparse} networks, which in this case means that the total number of temporal constraints is $2N$. On the right side we have \textit{dense} networks, meaning that the number of temporal constraints is $N^2/2$.}
+\includegraphics[width=\textwidth]{execution_time_std}
+\caption{Comporison of execution time for different types of networks, or \texttt{inf} if the solver failed to compute the result within time limit. Y axis represents the number of nodes in the temporal network ($N$). X axis represents the number of resource constraints ($R$). Top portion of the figure was obtained using the MIP-based solver, while bottom part of the figure was obtained using CSP-based solver. The left side of the figure represents computations on \textit{sparse} networks, which in this case means that the total number of temporal constraints is $2N$. On the right side we have \textit{dense} networks, meaning that the number of temporal constraints is $N^2/2$. This figure was computed by running the experiment for every set of parameters (but with different randomly generated instance) multiple times. Numbers in bottom left corner of each cell are corresponding standard deviations.}
 \label{fig:execution_time}
 \end{center}
 \end{figure*}
