@@ -3,7 +3,7 @@
 \begin{figure*}
 \begin{center}
 \includegraphics[width=\textwidth]{execution_time_std}
-\caption{Comporison of execution time for different types of networks, or \texttt{inf} if the solver failed to compute the result within time limit. Y axis represents the number of events in the temporal network ($N$). X axis represents the number of resource constraints ($R$). Top portion of the figure was obtained using the MIP-based solver, while bottom part of the figure was obtained using CSP-based solver. The left side of the figure represents computations on \textit{sparse} networks, which in this case means that the total number of temporal constraints is $2N$. On the right side we have \textit{dense} networks, meaning that the number of temporal constraints is $N^2/2$. This figure was computed by running the experiment for every set of parameters (but with different randomly generated instance) multiple times. Numbers in bottom left corner of each cell are corresponding standard deviations.}
+\caption{Comporison of execution time for different types of networks, or \texttt{inf} if the solver failed to compute the result within time limit. Y axis represents the number of events in the temporal network ($N$). X axis represents the number of resource constraints ($R$). Top portion of the figure was obtained using the MIP-based solver, while bottom part of the figure was obtained using CP-based solver. The left side of the figure represents computations on \textit{sparse} networks, which in this case means that the total number of temporal constraints is $2N$. On the right side we have \textit{dense} networks, meaning that the number of temporal constraints is $N^2/2$. This figure was computed by running the experiment for every set of parameters (but with different randomly generated instance) multiple times. Numbers in bottom left corner of each cell are corresponding standard deviations.}
 \label{fig:execution_time}
 \end{center}
 \end{figure*}
@@ -11,13 +11,13 @@
 \begin{figure*}
 \begin{center}
 \includegraphics[width=\textwidth]{when_better}
-\caption{Number on the figure represents execution time using MIP-based algorithm divided by execution time using CSP-based algorithm. Notice that in particular $0$, means that CSP-based algorithm failed to compute the results within the time limit and \texttt{inf} means that MIP-based algorithm timed out. The missing cells correspond to the networks where both of the algorithms timed out and therefore their execution time cannot be compared.   }
+\caption{Number on the figure represents execution time using MIP-based algorithm divided by execution time using CP-based algorithm. Notice that in particular $0$, means that CP-based algorithm failed to compute the results within the time limit and \texttt{inf} means that MIP-based algorithm timed out. The missing cells correspond to the networks where both of the algorithms timed out and therefore their execution time cannot be compared.   }
 \label{fig:when_better}
 \end{center}
 \end{figure*}
 
 \subsection{TRN over STN}
-To compare both algorithms we chose a simple example of TRN over STN. In case of MIP based algorithm all the temporal constraints $l \leq x - y \leq u$, where $l,b \in \mathbb{R}$ and $x,y \in events(ATN)$ can be expressed as simple linear constraints, with $x$ and $y$ being continuous variables. In case of CSP based algorithm we used Floyd-Warshall to determine temporal consistency as suggested in \cite{dechter1991temporal}. The test cases were created by the following procedure:
+To compare both algorithms we chose a simple example of TRN over STN. In case of MIP based algorithm all the temporal constraints $l \leq x - y \leq u$, where $l,b \in \mathbb{R}$ and $x,y \in events(ATN)$ can be expressed as simple linear constraints, with $x$ and $y$ being continuous variables. In case of CP based algorithm we used Floyd-Warshall to determine temporal consistency as suggested in \cite{dechter1991temporal}. The test cases were created by the following procedure:
 \begin{enumerate}
 \item Specify number of events $N \geq 2$, number of temporal constraints $T\geq 2$ and number of resource constraints $R\geq 2$
 \item Create a random schedule $s$ for events in $N$ with times in the interval $(0.0, 1.0)$.
@@ -37,7 +37,7 @@ To compare both algorithms we chose a simple example of TRN over STN. In case of
   \end{enumerate}
 \end{enumerate}
 
-We considered $10$ different values of $N$: $10, 20, ..., 100$. We considered $6$ different values of $R$: $2, 4, 6, 8, 10, 20$. To chose $T$ we defined two types of networks - sparse, where $T = 2N$ and dense where $T = N^2/2$. For every set of parameters we run $15$ trials. We set the time limit to $30$ seconds. The results are presented on figure \ref{fig:execution_time}. We can see there exist set of parameters where only CSP managed to find the solution MIP exceed the time limit and vice versa. Figure \ref{fig:when_better} compares execution time of CP and MIP algorithms. The cells colored in blue are the ones where CSP algorithm is faster and the cells colored in red are the ones where MIP based algorithm is better. One can see that CSP is much better suited for large temporal networks with small number of resource constraints, while MIP scales much better with the number of resource constraints.
+We considered $10$ different values of $N$: $10, 20, ..., 100$. We considered $6$ different values of $R$: $2, 4, 6, 8, 10, 20$. To chose $T$ we defined two types of networks - sparse, where $T = 2N$ and dense where $T = N^2/2$. For every set of parameters we run $15$ trials. We set the time limit to $30$ seconds. The results are presented on figure \ref{fig:execution_time}. We can see there exist set of parameters where only CP managed to find the solution MIP exceed the time limit and vice versa. Figure \ref{fig:when_better} compares execution time of CP and MIP algorithms. The cells colored in blue are the ones where CP algorithm is faster and the cells colored in red are the ones where MIP based algorithm is better. One can see that CP is much better suited for large temporal networks with small number of resource constraints, while MIP scales much better with the number of resource constraints.
 
 
 

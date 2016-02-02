@@ -1,42 +1,43 @@
 \section{Approach}
-In this section be present two alternative approaches to solving the problem. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Satisfaction Problem (CSP) formulations. For both algorithm the following definitions will be useful.
-Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let's denote all the timepoints relevant for resource constraints as $RT \subseteq events(ATN)$, i.e.
+In this section we present two approaches for determining time-resource consistency of TRN. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Problem (CP) formulations. For both algorithm the following definitions will be useful.
+Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let's denote all the events relevant for resource constraints as $RE \subseteq events(ATN)$, i.e.
 \begin{align*}
-RT = \{ x_i | (x_i, y_i, r_i) \in R \} \cup \{ y_i | (x_i, y_i, r_i) \in R \}
+RE = \{ x_i | (x_i, y_i, r_i) \in R \} \cup \{ y_i | (x_i, y_i, r_i) \in R \}
 \end{align*}
-Additionally, let's introduce resource-change at timepoint $n \in events(ATN)$ as:
+Additionally, let's introduce resource-change at event $e \in events(ATN)$ as:
 \begin{align*}
-\Delta(n) = \sum_{(x_i, y_i, r_i) \in R, x_i = n} r_i + \sum_{(x_i, y_i, r_i) \in R, y_i = n} -r_i
+\Delta(e) = \sum_{(x_i, y_i, r_i) \in R, x_i = e} r_i + \sum_{(x_i, y_i, r_i) \in R, y_i = e} -r_i
 \end{align*}
 Intuitively $\Delta(n)$ is the amount by which resource usage changes after time $s(n)$ under schedule $s$.
-\subsection{Mixed Integer Programming based algorithm}
-Mixed Integer Programming (\cite{markowitz1957solution}) is a very natural way of expressing scheduling problems. It's flexibility and efficiency causes many researchers to choose this method to tackle scheduling problems. In this section we present a way to formulate TRN as a MIP problem.  Let $TC-fromulation(ATN)$ be a MIP-formulation that is consistent if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied.
 
-We propose the following formulation:
+\subsection{Mixed Integer Programming based algorithm}
+Mixed Integer Programming (\cite{markowitz1957solution}) is a very natural way of expressing scheduling problems. It's flexibility and efficiency causes many researchers to choose this method to tackle scheduling problems. In this section we present a way to formulate TRN as a MIP problem. The technique is very similar to the ones used in state of the art solvers for general scheduling  \cite{patterson1984comparison} \cite{bartusch1988scheduling}. Therefore the purpose of this section is not to introduce a novel approach, but to demonstrate that those algorithms are straightforward to express using TRN formulation. Let $TC-fromulation(ATN)$ be a MIP-formulation that is consistent if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied.
+
+We will use the following formulation:
 \begin{align}
-\label{eq:mip0} & \forall_{t \in events(ATN)}.              & 0 \leq t \leq M \\
-\label{eq:mip1} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & t_1 - t_2 \geq - x_{t_1,t_2} M \\
-\label{eq:mip2} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & t_1 - t_2 \leq (1.0 - x_{t_1,t_2}) M\\
-\label{eq:mip3} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & x_{t_1,t_2} + x_{t_2,t_1}  = 1\\
-\label{eq:mip4} & \forall_{t_1, t_2 \in RT, t_1 \neq t_2}. & x_{t_1,t_2} \in \{ 0, 1 \} \\
-\label{eq:mip5} & \forall_{t_1 \in RT}.                    & \sum_{t_2 \in RT} x_{t_2, t_1} \Delta(t_2) \leq 0\\
+\label{eq:mip0} & \forall_{e \in events(ATN)}.              & 0 \leq e \leq M \\
+\label{eq:mip1} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & e_1 - e_2 \geq - x_{e_1,e_2} M \\
+\label{eq:mip2} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & e_1 - e_2 \leq (1.0 - x_{e_1,e_2}) M\\
+\label{eq:mip3} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & x_{e_1,e_2} + x_{e_2,e_1}  = 1\\
+\label{eq:mip4} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & x_{e_1,e_2} \in \{ 0, 1 \} \\
+\label{eq:mip5} & \forall_{e_1 \in RE}.                    & \sum_{e_2 \in RE} x_{e_2, e_1} \Delta(e_2) \leq 0\\
 \label{eq:mip6} & \text{TC-fromulation(ATN)}
 \end{align}
 
 Variable $M$ denotes the time horizon, such that all the variables are scheduled between $0$ and $M$. This definition is imposed in eq. \ref{eq:mip0}.
-Variables $x_{t_1,t_2}$ are order variables, i.e.
+Variables $x_{e_1,e_2}$ are order variables, i.e.
 \begin{align*}
-x_{t_1, t_2} = \begin{cases}
-1 &\text{ if }s(t_1) \leq s(t_2) \\
+x_{e_1, e_2} = \begin{cases}
+1 &\text{ if }s(e_1) \leq s(e_2) \\
 0 &\text{ otherwise}
 \end{cases}
 \end{align*}
-Equations \ref{eq:mip1}, \ref{eq:mip2}, \ref{eq:mip3}, \ref{eq:mip4} enforce that definition. In particular equations \ref{eq:mip1}, \ref{eq:mip2} enforce the ordering using big-$M$ formulation that is correct because of time horizon constraint. In theory eq. \ref{eq:mip3} could be eliminated by careful use of $\epsilon$ (making sure no two timepoints are scheduled at exactly the same time), but we found that in practice they result in useful cutting planes that decrease the total runtime. Equation \ref{eq:mip5} ensures resource consistency by lemma \ref{resource_checking}. Finally eq. \ref{eq:mip6} ensures time consistency.
+Equations \ref{eq:mip1}, \ref{eq:mip2}, \ref{eq:mip3}, \ref{eq:mip4} enforce that definition. In particular equations \ref{eq:mip1}, \ref{eq:mip2} enforce the ordering using big-$M$ formulation that is correct because of time horizon constraint. In theory eq. \ref{eq:mip3} could be eliminated by careful use of $\epsilon$ (making sure no two timepoints are scheduled at exactly the same time), but we found that in practice they result in useful cutting planes that decrease the total optimization time. Equation \ref{eq:mip5} ensures resource consistency by lemma \ref{resource_checking}. Finally eq. \ref{eq:mip6} ensures time consistency.
 
-Solving that mixed-integer program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in events(ATN)$.
+Solving that Mixed-Integer Program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in events(ATN)$.
 
-\subsection{Constraint Satisfaction Programming based algorithm}
-High level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line we iterate over all the permutations of the timepoints. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, which by corollary \ref{cor:ordering} is only dependent on the chosen permutation. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_scts$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
+\subsection{Constraint Programming based algorithm}
+The downside of MIP approach is the fact that the ATN must have a MIP formulation (e.g. pSTN does not have one). In this section we present a novel CP approach which addresses those concerns. The high level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line, we iterate over all the permutations of the events. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, which by corollary \ref{cor:ordering} is only dependent on the chosen permutation. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_stcs$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
 
 \begin{algorithm}[h]
     \label{hl_algo}
@@ -45,25 +46,25 @@ High level idea of the algorithm is quite simple and is presented in algorithm \
     $N \leftarrow \texttt{events(ATN)}$\;
     \For{$\sigma \leftarrow \text{permutation of } N$}{
         \If{\texttt{resource\_consistent(R, $\sigma$)} }{
-            \If{TC(\texttt{extend(ATN, encode\_as\_scts($\sigma$))})}{
-                succeed\;
+            \If{TC(\texttt{extend(ATN, encode\_as\_stcs($\sigma$))})}{
+                \Return true\;
             }
         }
     }
-    fail\;
-    \caption{Checking $p$-time-resource-consistency of a TRN }
+    \Return false\;
+    \caption{Time-resource-consistency of a TRN }
 \end{algorithm}
-Implementation of \texttt{resource\_consistent} follows from lemma \ref{resource_checking} and is fairly straightforward - we can evaluate $\lim_{\epsilon \to 0} U_s(s(t) + \epsilon)$ for all the scheduled timepoints only knowing their relative ordering, if it is always non-positive then we return true.
+The implementation of \texttt{resource\_consistent} follows from lemma \ref{resource_checking} and is straightforward - we can evaluate $\lim_{\epsilon \to 0} U_s(s(e) + \epsilon)$ for all events $e \in RE$ only knowing their relative ordering, if it is always non-positive then we return true.
 
-To improve the performance w.r.t algorithm \ref{hl_algo} we use off-the-shelf constraint propagation software. Let's consider $RT={t_1, ..., t_N}$. We define a problem using $N$ variables:  $x_1, x_2, ..., x_N \in \{ 1, ..., N \}$, such that $x_j=i$ if $t_i$ is $j$-th in the temporal order, i.e. $x_1, ..., x_N$ represent the permutation $\sigma$. We used the following pruners which, when combined, make the CSP equaivalent to algorithm \ref{hl_algo}:
+To improve the performance w.r.t algorithm \ref{hl_algo} we use off-the-shelf constraint propagation software (PyConstraint). Let's consider $RE={e_1, ..., e_N}$. We define a problem using $N$ variables:  $x_1, x_2, ..., x_N \in \{ 1, ..., N \}$, such that $x_j=i$ if $e_i$ is $j$-th in the temporal order, i.e. $x_1, ..., x_N$ represent the permutation $\sigma$. We used the following pruners which, when combined, make the CP solver behave similarly to algorithm \ref{hl_algo}, but ignoring some pruned permutations:
 \begin{itemize}
-\item \textbf{all\_different\_constraint} - ensure that all variables are different, i.e. the actually represent the permutation. This is standard constraint available in most CSP software packages.
-\item \textbf{time\_consistent} - making sure that the temporal constraints implied by the permutation are not making the $ATN$ inconsistent. Even if the variables are partially instantiated we can compute the all the temporal constraints implied by the permutation. For example if we only know that $x_1 = 3$, $x_5 = 2$ and $x_6=5$, that implies $t_5 \leq t_1 \leq t_6$.
-\item \textbf{resource\_consistent} - ensure that for all $t_1, ..., t_n$, resource usage just after $t_i$ is non-positive. Even if the order is partially specified we can still evaluate it. The tricky part is we need to assume that all the timepoints for which $x_i$ is undergined and which are generating ($\delta(t_i) < 0$) could be scheduled before all the points for which order is defined. For exmaple if $N = 4$ and $\Delta(t_1) = 4$, $\Delta(t_2) = -6$, $\Delta(t_3) = 3$, $\Delta(t_4) = 4$ and we only know that $x_1 = 3$, $x_3 = 2$. The we have to assume that all the generation happened before the points that we know, i.e. initially resource usage is $-6$, then after $t_3$ is is $-3$, and after $t_1$ it is $1$, therefore violating the constraint. But if in that scenario we would instead have $\Delta(t_1) = 2$ and we hadn't had assumed that all the unscheduled generation $-6$ happens at the beginning, we would have falsely deduced that the given variable assignment could never be made resource consistent.
+\item \textbf{all\_different\_constraint} - ensure that all variables are different, i.e. they actually represent a permutation. This is standard constraint available in most CP software packages.
+\item \textbf{time\_consistent} - making sure that the temporal constraints implied by the permutation are not making the $ATN$ inconsistent. Even when the variables are partially instantiated, we can compute a set of temporal constraints implied by the partially instantiated permutation. For example if we only know that $x_1 = 3$, $x_5 = 2$ and $x_6=5$, it implies $e_5 \leq e_1 \leq e_6$.
+\item \textbf{resource\_consistent} - ensure that for all $e_1, ..., e_n \in RE$, resource usage just after $e_i$ is non-positive. Even if the order is partially specified we can still evaluate it. A subtlety which needs to be considered is that we need to assume that all the events for which $x_i$ is undefined and which are generating ($\delta(e_i) < 0$) could be scheduled before all the points for which order is defined. For example if $n = 4$ and $\Delta(e_1) = 4$, $\Delta(e_2) = -6$, $\Delta(e_3) = 3$, $\Delta(e_4) = 4$ and we only know that $x_1 = 3$, $x_3 = 2$, then we have to assume that all the generation happened before the points that we know, i.e. initially resource usage is $-6$, then after $e_3$ is is $-3$, and after $e_1$ it is $1$, therefore violating the constraint. But if in that scenario we would instead have $\Delta(e_1) = 2$ and we hadn't had assumed that all the unscheduled generation $-6$ happens at the beginning, we would have falsely deduced that the given variable assignment could never be made resource consistent.
 \end{itemize}
 
-\subsubsection{Going beyond schedules}
-Notice that the notion of the schedule is not explicitly used in CSP based algorithm. This means that in principle we are not required to use a static schedule, but we could for example consider $ATN$ to be $STNU$ and $TC$ to be dynamic controllability (\cite{vidal1996dealing}). The output is then execution strategy, rather than a schedule. Notice that there's an important limitation to that approach though - some concepts might not naturally extend to resource constraints. For example in case of dynamic controllability, even though temporal schedule is dynamic, the schedule implied by resource constraints is static - we cannot changed $\sigma$ dynamically during execution.
+\subsubsection{TRN limitations - going beyond schedules}
+Notice that the notion of the schedule is not explicitly used in the CP based algorithm. In principle, we are not required to use a static schedule. For example, we could consider $ATN$ to be $STNU$ and $TC$ to be dynamic controllability (\cite{vidal1996dealing}). The output is then an execution strategy, rather than a schedule. Notice that there is an important limitation to that approach though - some concepts might not naturally extend to resource constraints. For example in the case of dynamic controllability, even though temporal schedule is dynamic, the schedule implied by resource constraints is static - we cannot change $\sigma$ dynamically during execution.
 
 % INPUT: atn N, {src} S (spanning N.timepoints)
 % OUTPUT: scheduling strategy on N or fail
