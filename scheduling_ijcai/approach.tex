@@ -63,8 +63,19 @@ To improve the performance w.r.t algorithm \ref{hl_algo} we use off-the-shelf co
 \item \textbf{resource\_consistent} - ensure that for all $e_1, ..., e_n \in RE$, resource usage just after $e_i$ is non-positive. Even if the order is partially specified we can still evaluate it. A subtlety which needs to be considered is that we need to assume that all the events for which $x_i$ is undefined and which are generating ($\delta(e_i) < 0$) could be scheduled before all the points for which order is defined. For example if $n = 4$ and $\Delta(e_1) = 4$, $\Delta(e_2) = -6$, $\Delta(e_3) = 3$, $\Delta(e_4) = 4$ and we only know that $x_1 = 3$, $x_3 = 2$, then we have to assume that all the generation happened before the points that we know, i.e. initially resource usage is $-6$, then after $e_3$ is is $-3$, and after $e_1$ it is $1$, therefore violating the constraint. But if in that scenario we would instead have $\Delta(e_1) = 2$ and we hadn't had assumed that all the unscheduled generation $-6$ happens at the beginning, we would have falsely deduced that the given variable assignment could never be made resource consistent.
 \end{itemize}
 
-\subsubsection{TRN limitations - going beyond schedules}
-Notice that the notion of the schedule is not explicitly used in the CP based algorithm. In principle, we are not required to use a static schedule. For example, we could consider $ATN$ to be $STNU$ and $TC$ to be dynamic controllability (\cite{vidal1996dealing}). The output is then an execution strategy, rather than a schedule. Notice that there is an important limitation to that approach though - some concepts might not naturally extend to resource constraints. For example in the case of dynamic controllability, even though temporal schedule is dynamic, the schedule implied by resource constraints is static - we cannot change $\sigma$ dynamically during execution.
+\subsubsection{TRN limitations - Going Beyond Fixed Schedules}
+Notice that CP algorithm does not require the schedule to be fixed. For example, we could consider $ATN$ to be $STNU$ and $TC$ to be dynamic controllability (\cite{vidal1996dealing}). The output is then an execution strategy, rather than a schedule. Notice that there is an important limitation to that approach though. Even though temporal schedule is dynamic, the schedule implied by resource constraints is static - we cannot change $\sigma$ dynamically during execution.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.49\textwidth,trim={0.23cm 0.23cm 0.00cm 0.37cm},clip]{stnu_counter}
+\caption{TRN cannot select $\sigma$ dynamically. Number over a resource constraint arrow represents $r$ in a simple resource constraint.}
+\label{fig:stnu_counter}
+\end{center}
+\end{figure}
+
+Figure \ref{fig:stnu_counter} shows an example where $TRN$ would report no solution found. However, if we ignore the resource constraints and find a dynamic execution strategy satisfying temporal constraints, it never violate resource constraints, as they are both generating. The reason TRN fails to find the solution is due to the fact that $B$ and $D$ are both in the set $RE$ and TRN's solution fixes the ordering between $B$ and $D$.
+
 
 % INPUT: atn N, {src} S (spanning N.timepoints)
 % OUTPUT: scheduling strategy on N or fail
