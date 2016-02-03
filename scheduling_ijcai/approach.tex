@@ -11,7 +11,7 @@ Additionally, let's introduce resource-change at event $e \in E$ as:
 Intuitively $\Delta(n)$ is the amount by which resource usage changes after time $s(n)$ under schedule $s$.
 
 \subsection{Mixed Integer Programming based algorithm}
-Mixed Integer Programming (\cite{markowitz1957solution}) is a very natural way of expressing scheduling problems. It's flexibility and efficiency causes many researchers to choose this method to tackle scheduling problems. In this section we present a way to formulate TRN as a MIP problem. The technique is very similar to the ones used in state of the art solvers for general scheduling  \cite{patterson1984comparison} \cite{bartusch1988scheduling}. Therefore the purpose of this section is not to introduce a novel approach, but to demonstrate that those algorithms are straightforward to express using TRN formulation. Let $TC-fromulation(ATN)$ be a MIP-formulation that is consistent if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied.
+Mixed Integer Programming (\cite{markowitz1957solution}) allows one to express scheduling problems in an intuitive way. In this section we present a way to formulate TRN as a MIP problem. The technique is very similar to the ones used in state of the art solvers for general scheduling  \cite{patterson1984comparison} \cite{bartusch1988scheduling}. Therefore, the purpose of this section is not to introduce a novel approach, but to demonstrate that those algorithms are straightforward to express using TRN formulation. Let $TC-fromulation(ATN)$ be a MIP-formulation that has a solution if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied.
 
 We will use the following formulation:
 \begin{align}
@@ -41,12 +41,13 @@ The downside of MIP approach is the fact that the ATN must have a MIP formulatio
 
 \begin{algorithm}[h]
     \label{hl_algo}
-    \KwData{TRN}
-    \KwResult{true if TRN=(ATN, R) is time-resource-consistent}
+    \KwData{$TRN=(ATN, R)$, $ATN=(E,C,X)$}
+    \KwResult{true if TRN is time-resource-consistent}
     $N \leftarrow E$\;
     \For{$\sigma \leftarrow \text{permutation of } N$}{
         \If{\texttt{resource\_consistent(R, $\sigma$)} }{
-            \If{TC(\texttt{extend(ATN, encode\_as\_stcs($\sigma$))})}{
+            $ATN' = (E,C \cup \text{encode\_as\_stcs}(\sigma), X)$ \;
+            \If{TC(ATN)}{
                 \Return true\;
             }
         }
@@ -57,7 +58,7 @@ The downside of MIP approach is the fact that the ATN must have a MIP formulatio
 
 \vspace{-3mm}
 
-The implementation of \texttt{resource\_consistent} follows from lemma \ref{resource_checking} and is straightforward - we can evaluate $\lim_{\epsilon \to 0} U_s(s(e) + \epsilon)$ for all events $e \in RE$ only knowing their relative ordering, if it is always non-positive then we return true.
+The implementation of \texttt{resource\_consistent} follows from lemma \ref{resource_checking} and is straightforward - we can evaluate $U_s(s(e))$ for all events $e \in RE$ (which can be done only knowing their relative ordering), and if it is always non-positive then we return true.
 
 To improve the performance w.r.t algorithm \ref{hl_algo} we use off-the-shelf constraint propagation software (PyConstraint). Let's consider $RE={e_1, ..., e_N}$. We define a problem using $N$ variables:  $x_1, x_2, ..., x_N \in \{ 1, ..., N \}$, such that $x_j=i$ if $e_i$ is $j$-th in the temporal order, i.e. $x_1, ..., x_N$ represent the permutation $\sigma$. We used the following pruners which, when combined, make the CP solver behave similarly to algorithm \ref{hl_algo}, but ignoring some pruned permutations:
 \begin{itemize}
