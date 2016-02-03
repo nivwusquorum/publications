@@ -17,7 +17,7 @@
 \end{figure*}
 
 \subsection{TRN over STN}
-To understand the performance of our novel CP algorithm, we used the proposed MIP approach as a baseline. Both algorithms were used to determine time-resource consistency for TRN over Simple Temporal Network. In case of MIP based algorithm all the temporal constraints $l \leq x - y \leq u$, where $l,b \in \mathbb{R}$ and $x,y \in E$ can be expressed as linear constraints, with $x$ and $y$ being continuous variables. In case of CP algorithm, we used Floyd-Warshall to determine temporal consistency as suggested in \cite{dechter1991temporal}. The test cases were created by the following procedure:
+To understand the performance of our novel CP algorithm, we used the proposed MIP approach as a baseline. We used Gurobi as a solver. Both algorithms were used to determine time-resource consistency for TRN over Simple Temporal Network. In case of MIP based algorithm all the temporal constraints $l \leq x - y \leq u$, where $l,b \in \mathbb{R}$ and $x,y \in E$ can be expressed as linear constraints, with $x$ and $y$ being continuous variables. In case of CP algorithm, we used Floyd-Warshall to determine temporal consistency as suggested in \cite{dechter1991temporal}. The test cases were created by the following procedure:
 
 
 % \small{

@@ -1,5 +1,6 @@
 \section{Approach}
-In this section we present two approaches for determining time-resource consistency of TRN. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Problem (CP) formulations. For both algorithm the following definitions will be useful.
+In this section we present two approaches for determining time-resource consistency of a TRN. One of them involves Mixed Integer Programming (MIP) and the other Constraint Problem (CP) formulations.
+\subsection{Definitions}
 Let's take a $TRN=\langle ATN, R \rangle$ where $R={src_1, ..., src_n}$ and $src_i = \langle x_i, y_i, r_i \rangle$ as defined in section \ref{sec:trn_definition}. Let's denote all the events relevant for resource constraints as $RE \subseteq E$, i.e.
 \begin{align*}
 RE = \{ x_i | \langle x_i, y_i, r_i \rangle \in R \} \cup \{ y_i | \langle x_i, y_i, r_i \rangle \in R \}
@@ -13,7 +14,7 @@ Intuitively $\Delta(n)$ is the amount by which resource usage changes after time
 \subsection{Mixed Integer Programming based algorithm}
 Mixed Integer Programming (\cite{markowitz1957solution}) allows one to express scheduling problems in an intuitive way. In this section we present a way to formulate TRN as a MIP problem. The technique is very similar to the ones used in state of the art solvers for general scheduling  \cite{patterson1984comparison} \cite{bartusch1988scheduling}. Therefore, the purpose of this section is not to introduce a novel approach, but to demonstrate that those algorithms are straightforward to express using TRN formulation. Let \texttt{TC-formulation(ATN)} be a MIP-formulation that has a solution if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied.
 
-We will use the following formulation:
+The following MIP program has a solution if and only if the TRN is time-resource-consistent:
 \begin{align}
 \label{eq:mip0} & \forall_{e \in E}.              & 0 \leq e \leq M \\
 \label{eq:mip1} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & e_1 - e_2 \geq - x_{e_1,e_2} M \\
@@ -37,7 +38,7 @@ Equations \ref{eq:mip1}, \ref{eq:mip2}, \ref{eq:mip3}, \ref{eq:mip4} enforce tha
 Solving that Mixed-Integer Program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in E$.
 
 \subsection{Constraint Programming based algorithm}
-The downside of MIP approach is the fact that the ATN must have a MIP formulation (e.g. pSTN does not have one). In this section we present a novel CP approach which addresses those concerns. The high level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line, we iterate over all the permutations of the events. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, which by corollary \ref{cor:ordering} is only dependent on the chosen permutation. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_stcs$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
+The downside of MIP approach is the fact that the ATN must have a MIP formulation (e.g. pSTN does not have one). In this section we present a novel CP approach which addresses this concern. The high level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line, we iterate over all the permutations of the events. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, which by corollary \ref{cor:ordering} is only dependent on the chosen permutation. On line five we use $TC$ checker to determine if network is time consistent - the implementation depends on the type of $ATN$ and we assume it is available. Function $encode\_as\_stcs$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
 
 \begin{algorithm}[h]
     \label{hl_algo}
@@ -60,7 +61,7 @@ The downside of MIP approach is the fact that the ATN must have a MIP formulatio
 
 The implementation of \texttt{resource\_consistent} follows from lemma \ref{resource_checking} and is straightforward - we can evaluate $U_s(s(e))$ for all events $e \in RE$ (which can be done only knowing their relative ordering), and if it is always non-positive then we return true.
 
-To improve the performance w.r.t algorithm \ref{hl_algo} we use off-the-shelf constraint propagation software (PyConstraint). Let's consider $RE={e_1, ..., e_N}$. We define a problem using $N$ variables:  $x_1, x_2, ..., x_N \in \{ 1, ..., N \}$, such that $x_j=i$ if $e_i$ is $j$-th in the temporal order, i.e. $x_1, ..., x_N$ represent the permutation $\sigma$. We used the following pruners which, when combined, make the CP solver behave similarly to algorithm \ref{hl_algo}, but ignoring some pruned permutations:
+To improve the performance w.r.t algorithm \ref{hl_algo}, we use off-the-shelf constraint propagation software (PyConstraint). Let's consider $RE={e_1, ..., e_N}$. We define a problem using $N$ variables:  $x_1, x_2, ..., x_N \in \{ 1, ..., N \}$, such that $x_j=i$ if $e_i$ is $j$-th in the temporal order, i.e. $x_1, ..., x_N$ represent the permutation $\sigma$. We used the following pruners which, when combined, make the CP solver behave similarly to algorithm \ref{hl_algo}, but ignoring some pruned permutations:
 \begin{itemize}
 \setlength\itemsep{0.2em}
 \item \textbf{all\_different\_constraint} - ensure that all variables are different, i.e. they actually represent a permutation. This is standard constraint available in most CP software packages.
@@ -69,17 +70,19 @@ To improve the performance w.r.t algorithm \ref{hl_algo} we use off-the-shelf co
 \end{itemize}
 
 \subsubsection{TRN limitations - Going Beyond Fixed Schedules}
-Notice that CP algorithm does not require the schedule to be fixed. For example, we could consider $ATN$ to be $STNU$ and $TC$ to be dynamic controllability (\cite{vidal1996dealing}). The output is then an execution strategy, rather than a schedule. Notice that there is an important limitation to that approach though. Even though temporal schedule is dynamic, the schedule implied by resource constraints is static - we cannot change $\sigma$ dynamically during execution.
+Notice that CP algorithm does not require the schedule to be fixed. For example, we could consider $ATN$ to be $STNU$ and $TC$ to be dynamic controllability (\cite{vidal1996dealing}). There, we seek an execution strategy, rather than a schedule. While this can be implemented for a TRN, there is an important limitation to that approach. Even though temporal schedule is dynamic, the schedule implied by resource constraints is static - we cannot change $\sigma$ dynamically during execution.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=0.48\textwidth,trim={0.23cm 0.23cm 0.00cm 0.37cm},clip]{stnu_counter}
-\caption{TRN cannot select $\sigma$ dynamically. Number over a resource constraint arrow represents $r$ in a simple resource constraint.}
+\caption{TRN cannot select $\sigma$ dynamically. Number below a  simple resource constraint represents $r$.}
 \label{fig:stnu_counter}
 \end{center}
 \end{figure}
 
-Figure \ref{fig:stnu_counter} shows an example where $TRN$ would report no solution found. However, if we ignore the resource constraints and find a dynamic execution strategy satisfying temporal constraints, it never violate resource constraints, as they are both generating. The reason TRN fails to find the solution is due to the fact that $B$ and $D$ are both in the set $RE$ and TRN's solution attempts to fix the ordering between $B$ and $D$, which is impossible to do statically in this example.
+\vspace{10mm}
+
+Figure \ref{fig:stnu_counter} shows an example where $TRN$ would report no solution found. However, if we ignore the resource constraints and find a dynamic execution strategy satisfying temporal constraints, it never violates the resource constraints, as they are both generating. The reason TRN fails to find the solution is due to the fact that $B$ and $D$ are both in the set $RE$ and TRN's solution attempts to fix the ordering between $B$ and $D$, which is impossible to do statically in this example.
 
 
 % INPUT: atn N, {src} S (spanning N.timepoints)
