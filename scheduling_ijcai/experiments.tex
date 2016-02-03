@@ -20,7 +20,7 @@
 To understand the performance of our novel CP algorithm, we used the proposed MIP approach as a baseline. Both algorithms were used to determine time-resource consistency for TRN over Simple Temporal Network. In case of MIP based algorithm all the temporal constraints $l \leq x - y \leq u$, where $l,b \in \mathbb{R}$ and $x,y \in E$ can be expressed as linear constraints, with $x$ and $y$ being continuous variables. In case of CP algorithm, we used Floyd-Warshall to determine temporal consistency as suggested in \cite{dechter1991temporal}. The test cases were created by the following procedure:
 
 
-\small{
+% \small{
   \begin{enumerate}
   \setlength\itemsep{0.1em}
   \item Specify number of events $N \geq 2$, number of temporal constraints $T\geq 2$ and number of resource constraints $R\geq 2$
@@ -40,7 +40,7 @@ To understand the performance of our novel CP algorithm, we used the proposed MI
     \item choose $r$ from uniform distribution between $0$ and $-m$.
     \end{enumerate}
   \end{enumerate}
-}
+% }
 
 We considered $10$ different values of $N$: $10, 20, ..., 100$. We considered $6$ different values of $R$: $2, 4, 6, 8, 10, 20$. We defined two types of networks - sparse, where $T = 2N$ and dense where $T = N^2/2$. For every set of parameters we run $15$ trials. We set the time limit to $30$ seconds. The results are presented on figure \ref{fig:execution_time}. We can see there exists a set of parameters where only CP managed to find the solution MIP exceed the time limit and vice versa. Figure \ref{fig:when_better} compares execution time of CP and MIP algorithms. The cells colored in blue are the ones where CP algorithm is faster and the cells colored in red are the ones where MIP based algorithm is better. One can see that CP is much better suited for large temporal networks with small number of resource constraints, while MIP scales much better with the number of resource constraints.
 

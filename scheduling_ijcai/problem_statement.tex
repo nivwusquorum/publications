@@ -5,11 +5,11 @@ In this section we introduce a novel formulation - Time Resource Network (TRN). 
 We wish to define TRN to support a general class of temporal networks. We thus define the notion of Abstract Temporal Network as a 3-tuple $ATN=\langle E, C, X\rangle$ where $E$ is a set of controllable events, $C$ is a set of simple temporal constraints \cite{dechter1991temporal} and $X$ represents any additional elements such as additional constraints and variables.
 
 \paragraph{Schedule}
-A schedule for an $ATN=(E,C,X)$ is a mapping $s: \texttt{E} \rightarrow \mathbb{R}$ from events in ATN to their execution times.
+A schedule for an $ATN= \langle E,C,X \rangle$ is a mapping $s: \texttt{E} \rightarrow \mathbb{R}$ from events in ATN to their execution times.
 
 \paragraph{Temporal Consistency}
 \label{temporal_consistency}
-For an $ATN=(E,C,X)$ we define a predicate $TC_s(ATN) = stn-consistent(E,C,s) \wedge extra-criteria(E,C,X,s)$, which denotes the $ATN$ is \textbf{temporally consistent} under schedule $s$. $stn-consistent(E,C,s)$ represents STN consistency as defined in \cite{dechter1991temporal}.  $extra-criteria(E,C,X,s)$ depends on the type of the particular ATN. We say that $ATN$ is temporally consistent (denoted by $TC(ATN)$), if there exists at schedule $s$ such that $TC_s(ATN)$.
+For an $ATN=\langle E,C,X \rangle$ we define a predicate $TC_s(ATN) = stn-consistent(E,C,s) \wedge extra-criteria(E,C,X,s)$, which denotes the $ATN$ is \textbf{temporally consistent} under schedule $s$. $stn-consistent(E,C,s)$ represents STN consistency as defined in \cite{dechter1991temporal}.  $extra-criteria(E,C,X,s)$ depends on the type of the particular ATN. We say that $ATN$ is temporally consistent (denoted by $TC(ATN)$), if there exists at schedule $s$ such that $TC_s(ATN)$.
 
 \paragraph{Example}
 An example of a network that satisfies the ATN interface is Simple Temporal Network with Uncertainty (STNU) described in \cite{vidal1996dealing}. The set $E$ is composed of all the activated and received events, $C$ is the set of requirement links, $X$ is the set of all the contingent links. One way to define is $TC(ATN)$ is to be true if and only if the networks is strongly controllable (which already implies $stn-consistent(E,C,s)$).
@@ -17,7 +17,7 @@ An example of a network that satisfies the ATN interface is Simple Temporal Netw
 %Let's consider cc-pSTP \cite{Fang2014} as an example. Here \texttt{events} returns set of \textit{activated} and \textit{received} time points. \texttt{extend} returns network with extra \textit{free contraints} encoding the simple temporal constraints. The temporal consistency check $TC$ is true if cc-pSTP has a solution.
 \subsection{Time Resource Network}
 \label{sec:trn_definition}
-A Time Resource Network is described by a tuple $TRN = (ATN, R)$, where $ATN$ is an Abstract Temporal Network and $R={src_1, ..., src_n}$ is a set of \textbf{simple resource constraints}, each of which is a triplet $(x, y, r)$, where $x, y \in$ E and $r \in \mathbb{R}$ is the amount of resource, which can be positive (consumption) and negative (generation). Given a schedule $s$ for any time $t \in \mathbb{R}$ we define \textbf{resource usage} for $src=(x,y,r)$ as:
+A Time Resource Network is described by a tuple $TRN = \langle ATN, R \rangle$, where $ATN$ is an Abstract Temporal Network and $R={src_1, ..., src_n}$ is a set of \textbf{simple resource constraints}, each of which is a triplet $ \langle x, y, r \rangle$, where $x, y \in$ E and $r \in \mathbb{R}$ is the amount of resource, which can be positive (consumption) and negative (generation). Given a schedule $s$ for any time $t \in \mathbb{R}$ we define \textbf{resource usage} for $src=\langle x,y,r \rangle$ as:
 \begin{align*}
 u_s(src, t) = \begin{cases}
 r & \text{if}\ s(x) \leq t < s(y)\\

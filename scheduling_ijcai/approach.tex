@@ -1,17 +1,17 @@
 \section{Approach}
 In this section we present two approaches for determining time-resource consistency of TRN. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Problem (CP) formulations. For both algorithm the following definitions will be useful.
-Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let's denote all the events relevant for resource constraints as $RE \subseteq E$, i.e.
+Let's take a $TRN=\langle ATN, R \rangle$ where $R={src_1, ..., src_n}$ and $src_i = \langle x_i, y_i, r_i \rangle$ as defined in section \ref{sec:trn_definition}. Let's denote all the events relevant for resource constraints as $RE \subseteq E$, i.e.
 \begin{align*}
-RE = \{ x_i | (x_i, y_i, r_i) \in R \} \cup \{ y_i | (x_i, y_i, r_i) \in R \}
+RE = \{ x_i | \langle x_i, y_i, r_i \rangle \in R \} \cup \{ y_i | \langle x_i, y_i, r_i \rangle \in R \}
 \end{align*}
 Additionally, let's introduce resource-change at event $e \in E$ as:
 \begin{align*}
-\Delta(e) = \sum_{(x_i, y_i, r_i) \in R, x_i = e} r_i + \sum_{(x_i, y_i, r_i) \in R, y_i = e} -r_i
+\Delta(e) = \sum_{\langle x_i, y_i, r_i \rangle \in R, x_i = e} r_i + \sum_{ \langle x_i, y_i, r_i \rangle \in R, y_i = e} -r_i
 \end{align*}
 Intuitively $\Delta(n)$ is the amount by which resource usage changes after time $s(n)$ under schedule $s$.
 
 \subsection{Mixed Integer Programming based algorithm}
-Mixed Integer Programming (\cite{markowitz1957solution}) allows one to express scheduling problems in an intuitive way. In this section we present a way to formulate TRN as a MIP problem. The technique is very similar to the ones used in state of the art solvers for general scheduling  \cite{patterson1984comparison} \cite{bartusch1988scheduling}. Therefore, the purpose of this section is not to introduce a novel approach, but to demonstrate that those algorithms are straightforward to express using TRN formulation. Let $TC-fromulation(ATN)$ be a MIP-formulation that has a solution if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied.
+Mixed Integer Programming (\cite{markowitz1957solution}) allows one to express scheduling problems in an intuitive way. In this section we present a way to formulate TRN as a MIP problem. The technique is very similar to the ones used in state of the art solvers for general scheduling  \cite{patterson1984comparison} \cite{bartusch1988scheduling}. Therefore, the purpose of this section is not to introduce a novel approach, but to demonstrate that those algorithms are straightforward to express using TRN formulation. Let \texttt{TC-formulation(ATN)} be a MIP-formulation that has a solution if an only if $TC(ATN)$. For some types of $ATN$ such a formulation might not exist and in those cases MIP-based algorithm cannot be applied.
 
 We will use the following formulation:
 \begin{align}
@@ -21,7 +21,7 @@ We will use the following formulation:
 \label{eq:mip3} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & x_{e_1,e_2} + x_{e_2,e_1}  = 1\\
 \label{eq:mip4} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & x_{e_1,e_2} \in \{ 0, 1 \} \\
 \label{eq:mip5} & \forall_{e_1 \in RE}.                    & \sum_{e_2 \in RE} x_{e_2, e_1} \Delta(e_2) \leq 0\\
-\label{eq:mip6} & \text{TC-fromulation(ATN)}
+\label{eq:mip6} & \texttt{TC-formulation(ATN)}
 \end{align}
 
 Variable $M$ denotes the time horizon, such that all the variables are scheduled between $0$ and $M$. This definition is imposed in eq. \ref{eq:mip0}.
@@ -41,7 +41,7 @@ The downside of MIP approach is the fact that the ATN must have a MIP formulatio
 
 \begin{algorithm}[h]
     \label{hl_algo}
-    \KwData{$TRN=(ATN, R)$, $ATN=(E,C,X)$}
+    \KwData{$TRN=\langle ATN, R \rangle$, $ATN= \langle E,C,X \rangle $}
     \KwResult{true if TRN is time-resource-consistent}
     $N \leftarrow E$\;
     \For{$\sigma \leftarrow \text{permutation of } N$}{
@@ -56,7 +56,7 @@ The downside of MIP approach is the fact that the ATN must have a MIP formulatio
     \caption{Time-resource-consistency of a TRN }
 \end{algorithm}
 
-\vspace{-3mm}
+\vspace{10mm}
 
 The implementation of \texttt{resource\_consistent} follows from lemma \ref{resource_checking} and is straightforward - we can evaluate $U_s(s(e))$ for all events $e \in RE$ (which can be done only knowing their relative ordering), and if it is always non-positive then we return true.
 
@@ -73,7 +73,7 @@ Notice that CP algorithm does not require the schedule to be fixed. For example,
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=0.43\textwidth,trim={0.23cm 0.23cm 0.00cm 0.37cm},clip]{stnu_counter}
+\includegraphics[width=0.48\textwidth,trim={0.23cm 0.23cm 0.00cm 0.37cm},clip]{stnu_counter}
 \caption{TRN cannot select $\sigma$ dynamically. Number over a resource constraint arrow represents $r$ in a simple resource constraint.}
 \label{fig:stnu_counter}
 \end{center}
