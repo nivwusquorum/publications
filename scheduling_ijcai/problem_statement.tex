@@ -2,27 +2,22 @@
 In this section we introduce a novel formulation - Time Resource Network (TRN). All the results presented in this paper can be extended to multiple different type of resources being constrained at the same time (electricity, water, fuel, cpu time, memory etc.), but to simplify the notation we will assume that only one type of resource is constrained. Additionally, we only consider the problem of consistency, but the techniques presented in this paper can be extended to handle objective optimization over constrained schedules.
 
 \subsection{Abstract Temporal Network}
-TRN's definition supports many different temporal networks. To capture only the relevant properties, we define the notion of Abstract Temporal Network as $ATN=(events,extend)$:
-\begin{enumerate}
-\item \texttt{events(ATN)}, returns a set of events in $ATN$
-\item \texttt{extend(ATN, $\{ stc_1, ... stc_n \} $)}, which takes ATN and a set of simple temporal constraints (\cite{dechter1991temporal}) spanning \texttt{events(ATN)}, and returns another $ATN'$, such that there exists a schedule satisfying $TC(ATN')$ if and only if there exists a schedule satisfying $TC(ATN)$ and obeying set of simple temporal constraint $\{ stc_1, ... stc_n \} $. $TC$ is a notion of temporal consistency described in section \ref{temporal_consistency}.
-\end{enumerate}
-As the following section describes in detail we will use \texttt{extend} to encode resource constraints over \texttt{events}.
-\subsection{Schedule}
-A schedule $s: \texttt{events(ATN)} \rightarrow \mathbb{R}$ is a mapping from events in ATN to their execution times.
-\subsection{Temporal Consistency}
+TRN's definition supports many different temporal networks. To capture only the relevant properties, we define the notion of Abstract Temporal Network as $ATN=(E, C, X)$ where $E$ is a set of events, $C$ is a set of simple temporal constraints \cite{dechter1991temporal} and $X$ represents any additional state that an ATN might have.
+
+\paragraph{Schedule}
+A schedule for an $ATN=(E,C,X)$ is a mapping $s: \texttt{E} \rightarrow \mathbb{R}$ from events in ATN to their execution times.
+
+\paragraph{Temporal Consistency}
 \label{temporal_consistency}
-For an ATN we define a predicate $TC_s(ATN)$, which means that $ATN$ is \textbf{temporally consistent} under schedule $s$. $TC_s$ is true if schedule $s$ satisfies all the constraints of the $ATN$ (what that means precisely depends on the $ATN$ - we only require for it to be verifiable). We say that $ATN$ is temporally consistent (denoted by $TC(ATN)$), when there exists at schedule $s$ such that $TC_s(ATN)$.
+For an $ATN=(E,C,X)$ we define a predicate $TC_s(ATN) = stn-consistent(E,C,s) \wedge extra-criteria(E,C,X,s)$, which means that $ATN$ is \textbf{temporally consistent} under schedule $s$. $stn-consistent(E,C,s)$ represents STN consistency as defined in \cite{dechter1991temporal}.  $extra-criteria(E,C,X,s)$ depends on the type of the particular ATN. We say that $ATN$ is temporally consistent (denoted by $TC(ATN)$), if there exists at schedule $s$ such that $TC_s(ATN)$.
 
-
-% \paragraph{Example}
-% Example network that satisfies the ATN interface is Simple Temporal Network with Uncertainty (STNU) described in \cite{vidal1996dealing}. Let $N$ be an STNU. Using the terminology from the paper \texttt{events($N$)} is the set of received and activated events and \texttt{extend($N$, $\{ stc_1, ... stc_n \} $)} augments $N$ with $stc_i$ encoded as a controllable link. One way to define is $TC(N)$ is to be true if and only if $N$ is strongly controllable.
-
+\paragraph{Example}
+An example of a network that satisfies the ATN interface is Simple Temporal Network with Uncertainty (STNU) described in \cite{vidal1996dealing}. The set $E$ is composed of all the activated and received events, $C$ is the set of requirement links, $X$ is the set of all the contingent links. One way to define is $TC(ATN)$ is to be true if and only if the networks is strongly controllable (which already implies $stn-consistent(E,C,s)$).
 
 %Let's consider cc-pSTP \cite{Fang2014} as an example. Here \texttt{events} returns set of \textit{activated} and \textit{received} time points. \texttt{extend} returns network with extra \textit{free contraints} encoding the simple temporal constraints. The temporal consistency check $TC$ is true if cc-pSTP has a solution.
 \subsection{Time Resource Network}
 \label{sec:trn_definition}
-A Time Resource Network is described by a tuple $TRN = (ATN, R)$, where $ATN$ is an Abstract Temporal Network and $R={src_1, ..., src_n}$ is a set of \textbf{simple resource constraints}, each of which is a triplet $(x, y, r)$, where $x, y \in$ \texttt{events(ATN)} and $r \in \mathbb{R}$ is the amount of resource, which can be positive (consumption) and negative (generation). Given a schedule $s$ for any time $t \in \mathbb{R}$ we define \textbf{resource usage} for $src=(x,y,r)$ as:
+A Time Resource Network is described by a tuple $TRN = (ATN, R)$, where $ATN$ is an Abstract Temporal Network and $R={src_1, ..., src_n}$ is a set of \textbf{simple resource constraints}, each of which is a triplet $(x, y, r)$, where $x, y \in$ E and $r \in \mathbb{R}$ is the amount of resource, which can be positive (consumption) and negative (generation). Given a schedule $s$ for any time $t \in \mathbb{R}$ we define \textbf{resource usage} for $src=(x,y,r)$ as:
 \begin{align*}
 u_s(src, t) = \begin{cases}
 r & \text{if}\ s(x) \leq t < s(y)\\
@@ -54,14 +49,13 @@ Before we proceed to describe algorithms for determining time-resource consisten
 \label{resource_checking}
 For a $TRN$ a schedule $s$ is resource consistent if and only if
 \begin{align}
-\label{eq:resource_consistency}\forall_{e \in \texttt{events(ATN)}} \lim_{\epsilon \to 0} U_s(s(e) + \epsilon) \leq 0
+\label{eq:resource_consistency}\forall_{e \in E} \lim_{\epsilon \to 0} U_s(s(e) + \epsilon) \leq 0
 \end{align}
-i.e. resource usage is not non-positive a moment after all of the scheduled events.
+i.e. resource usage is non-positive a moment after all of the scheduled events.
 \end{lemma}
 \begin{proof}
 $\Rightarrow$ Follows from definition of resource-consistency.\\
-$\Leftarrow$ We say a time point $t \in \mathbb{R}$ is scheduled if there exists an event  $x \in \texttt{events(ATN)}$ such that $t = s(x)$. Assume for contradiction, that the right side of the implication is satisfied, but the schedule is not resource consistent. That means that there exists a time point $t_{danger}$ for which $U_s(t_{danger}) > 0 $. We will only consider the case where $t_{danger}$ is \textbf{not} scheduled (because there are finitely many scheduled time points, we can consider them members of $C$). Let $t_{before}$ be the highest scheduled (so $t_{before}=s(e_{before})$ for some $e_{before} \in \texttt{events(ATN)}$ ) time point that is smaller than $t_{danger}$. Notice that if no such time point existed, that would mean that there is no resource constraint $(x,y,r)$ such that $s(x) \leq t_{danger} < s(y)$, so $U_s(t_{danger})=0$ . We can therefore assume that $t_{before}$ exists. Notice that by definition of $t_{before}$ and simple resource constraints, $U_s(t)$ for $t_{before} < t \leq t_{danger}$ is constant, therefore $U_s(t_{danger}) = \lim_{\epsilon \to 0} U_s(s(e_{before}) + \epsilon) > 0$. Contradiction.
-
+$\Leftarrow$ We say a time point $t \in \mathbb{R}$ is scheduled if there exists an event  $x \in E$ such that $t = s(x)$. Assume for contradiction, that the right side of the implication is satisfied, but the schedule is not resource consistent. That means that there exists a time point $t_{danger}$ for which $U_s(t_{danger}) > 0 $. We will only consider the case where $t_{danger}$ is \textbf{not} scheduled (because there are finitely many scheduled time points, we can consider them members of $C$). Let $t_{before}$ be the highest scheduled (so $t_{before}=s(e_{before})$ for some $e_{before} \in E$ ) time point that is smaller than $t_{danger}$. Notice that if no such time point existed, that would mean that there is no resource constraint $(x,y,r)$ such that $s(x) \leq t_{danger} < s(y)$, so $U_s(t_{danger})=0$ . We can therefore assume that $t_{before}$ exists. Notice that by definition of $t_{before}$ and simple resource constraints, $U_s(t)$ for $t_{before} < t \leq t_{danger}$ is constant, therefore $U_s(t_{danger}) = \lim_{\epsilon \to 0} U_s(s(e_{before}) + \epsilon) > 0$. Contradiction.
 \end{proof}
 \begin{corollary}
 \label{cor:ordering}

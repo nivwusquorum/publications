@@ -1,10 +1,10 @@
 \section{Approach}
 In this section we present two approaches for determining time-resource consistency of TRN. One of them is using Mixed Integer Programming (MIP) and the other is using Constraint Problem (CP) formulations. For both algorithm the following definitions will be useful.
-Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let's denote all the events relevant for resource constraints as $RE \subseteq events(ATN)$, i.e.
+Let's take a $TRN=(ATN, R)$ where $R={src_1, ..., src_n}$ and $src_i = (x_i, y_i, r_i)$ as defined in section \ref{sec:trn_definition}. Let's denote all the events relevant for resource constraints as $RE \subseteq E$, i.e.
 \begin{align*}
 RE = \{ x_i | (x_i, y_i, r_i) \in R \} \cup \{ y_i | (x_i, y_i, r_i) \in R \}
 \end{align*}
-Additionally, let's introduce resource-change at event $e \in events(ATN)$ as:
+Additionally, let's introduce resource-change at event $e \in E$ as:
 \begin{align*}
 \Delta(e) = \sum_{(x_i, y_i, r_i) \in R, x_i = e} r_i + \sum_{(x_i, y_i, r_i) \in R, y_i = e} -r_i
 \end{align*}
@@ -15,7 +15,7 @@ Mixed Integer Programming (\cite{markowitz1957solution}) is a very natural way o
 
 We will use the following formulation:
 \begin{align}
-\label{eq:mip0} & \forall_{e \in events(ATN)}.              & 0 \leq e \leq M \\
+\label{eq:mip0} & \forall_{e \in E}.              & 0 \leq e \leq M \\
 \label{eq:mip1} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & e_1 - e_2 \geq - x_{e_1,e_2} M \\
 \label{eq:mip2} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & e_1 - e_2 \leq (1.0 - x_{e_1,e_2}) M\\
 \label{eq:mip3} & \forall_{e_1, e_2 \in RE, e_1 \neq e_2}. & x_{e_1,e_2} + x_{e_2,e_1}  = 1\\
@@ -34,7 +34,7 @@ x_{e_1, e_2} = \begin{cases}
 \end{align*}
 Equations \ref{eq:mip1}, \ref{eq:mip2}, \ref{eq:mip3}, \ref{eq:mip4} enforce that definition. In particular equations \ref{eq:mip1}, \ref{eq:mip2} enforce the ordering using big-$M$ formulation that is correct because of time horizon constraint. In theory eq. \ref{eq:mip3} could be eliminated by careful use of $\epsilon$ (making sure no two timepoints are scheduled at exactly the same time), but we found that in practice they result in useful cutting planes that decrease the total optimization time. Equation \ref{eq:mip5} ensures resource consistency by lemma \ref{resource_checking}. Finally eq. \ref{eq:mip6} ensures time consistency.
 
-Solving that Mixed-Integer Program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in events(ATN)$.
+Solving that Mixed-Integer Program will yield a valid schedule if one exists, which can be recovered by inspecting values of variables $t \in E$.
 
 \subsection{Constraint Programming based algorithm}
 The downside of MIP approach is the fact that the ATN must have a MIP formulation (e.g. pSTN does not have one). In this section we present a novel CP approach which addresses those concerns. The high level idea of the algorithm is quite simple and is presented in algorithm \ref{hl_algo}. In the second line, we iterate over all the permutations of the events. On line 3 we use \texttt{resource\_consistent} function to check resource consistency, which by corollary \ref{cor:ordering} is only dependent on the chosen permutation. On line four we use $TC$ checker to determine if network is time consistent - the implementation depends on $ATN$ and we assume it is available. Function $encode\_as\_stcs$ encodes permutation using simple temporal constraints. For example if $\sigma(1) = 2$ and $\sigma(2) = 1$ and $\sigma(3) = 3$, then we can encode it by two STCs: $ 2 \leftarrow 1 $ and $1 \leftarrow 3$.
@@ -43,7 +43,7 @@ The downside of MIP approach is the fact that the ATN must have a MIP formulatio
     \label{hl_algo}
     \KwData{TRN}
     \KwResult{true if TRN=(ATN, R) is time-resource-consistent}
-    $N \leftarrow \texttt{events(ATN)}$\;
+    $N \leftarrow E$\;
     \For{$\sigma \leftarrow \text{permutation of } N$}{
         \If{\texttt{resource\_consistent(R, $\sigma$)} }{
             \If{TC(\texttt{extend(ATN, encode\_as\_stcs($\sigma$))})}{
@@ -54,6 +54,9 @@ The downside of MIP approach is the fact that the ATN must have a MIP formulatio
     \Return false\;
     \caption{Time-resource-consistency of a TRN }
 \end{algorithm}
+
+\vspace{-3mm}
+
 The implementation of \texttt{resource\_consistent} follows from lemma \ref{resource_checking} and is straightforward - we can evaluate $\lim_{\epsilon \to 0} U_s(s(e) + \epsilon)$ for all events $e \in RE$ only knowing their relative ordering, if it is always non-positive then we return true.
 
 To improve the performance w.r.t algorithm \ref{hl_algo} we use off-the-shelf constraint propagation software (PyConstraint). Let's consider $RE={e_1, ..., e_N}$. We define a problem using $N$ variables:  $x_1, x_2, ..., x_N \in \{ 1, ..., N \}$, such that $x_j=i$ if $e_i$ is $j$-th in the temporal order, i.e. $x_1, ..., x_N$ represent the permutation $\sigma$. We used the following pruners which, when combined, make the CP solver behave similarly to algorithm \ref{hl_algo}, but ignoring some pruned permutations:
@@ -69,7 +72,7 @@ Notice that CP algorithm does not require the schedule to be fixed. For example,
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=0.49\textwidth,trim={0.23cm 0.23cm 0.00cm 0.37cm},clip]{stnu_counter}
+\includegraphics[width=0.43\textwidth,trim={0.23cm 0.23cm 0.00cm 0.37cm},clip]{stnu_counter}
 \caption{TRN cannot select $\sigma$ dynamically. Number over a resource constraint arrow represents $r$ in a simple resource constraint.}
 \label{fig:stnu_counter}
 \end{center}
