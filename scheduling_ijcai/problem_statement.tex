@@ -1,15 +1,15 @@
 \section{Problem statement}
-In this section we introduce a novel formulation - Time Resource Network (TRN). All the results presented in this paper can be extended to multiple different type of resources being constrained at the same time (electricity, water, fuel, cpu time, memory etc.), but to simplify the notation we will assume that only one type of resource is constrained. Additionally, we only consider the problem of consistency, but the techniques presented in this paper can be extended to handle objective optimization over constrained schedules.
+In this section we introduce a novel formulation - Time Resource Network (TRN). While the results presented in this paper can be extended to multiple types of resources being constrained simultaneously (for example electricity, water, fuel, CPU time and memory among others), for simplicity we consider only one type of constrained resource in this work. Additionally, we only consider the problem of consistency, but the techniques presented can be extended to handle optimization over constrained schedules.
 
 \subsection{Abstract Temporal Network}
-TRN's definition supports many different temporal networks. To capture only the relevant properties, we define the notion of Abstract Temporal Network as $ATN=(E, C, X)$ where $E$ is a set of events, $C$ is a set of simple temporal constraints \cite{dechter1991temporal} and $X$ represents any additional state that an ATN might have.
+We wish to define TRN to support a general class of temporal networks. We thus define the notion of Abstract Temporal Network as a 3-tuple $ATN=\langle E, C, X\rangle$ where $E$ is a set of controllable events, $C$ is a set of simple temporal constraints \cite{dechter1991temporal} and $X$ represents any additional elements such as additional constraints and variables.
 
 \paragraph{Schedule}
 A schedule for an $ATN=(E,C,X)$ is a mapping $s: \texttt{E} \rightarrow \mathbb{R}$ from events in ATN to their execution times.
 
 \paragraph{Temporal Consistency}
 \label{temporal_consistency}
-For an $ATN=(E,C,X)$ we define a predicate $TC_s(ATN) = stn-consistent(E,C,s) \wedge extra-criteria(E,C,X,s)$, which means that $ATN$ is \textbf{temporally consistent} under schedule $s$. $stn-consistent(E,C,s)$ represents STN consistency as defined in \cite{dechter1991temporal}.  $extra-criteria(E,C,X,s)$ depends on the type of the particular ATN. We say that $ATN$ is temporally consistent (denoted by $TC(ATN)$), if there exists at schedule $s$ such that $TC_s(ATN)$.
+For an $ATN=(E,C,X)$ we define a predicate $TC_s(ATN) = stn-consistent(E,C,s) \wedge extra-criteria(E,C,X,s)$, which denotes the $ATN$ is \textbf{temporally consistent} under schedule $s$. $stn-consistent(E,C,s)$ represents STN consistency as defined in \cite{dechter1991temporal}.  $extra-criteria(E,C,X,s)$ depends on the type of the particular ATN. We say that $ATN$ is temporally consistent (denoted by $TC(ATN)$), if there exists at schedule $s$ such that $TC_s(ATN)$.
 
 \paragraph{Example}
 An example of a network that satisfies the ATN interface is Simple Temporal Network with Uncertainty (STNU) described in \cite{vidal1996dealing}. The set $E$ is composed of all the activated and received events, $C$ is the set of requirement links, $X$ is the set of all the contingent links. One way to define is $TC(ATN)$ is to be true if and only if the networks is strongly controllable (which already implies $stn-consistent(E,C,s)$).
@@ -44,7 +44,7 @@ Intuitively, it means that resource is never consumed at a rate that is greater 
 $TRN=(ATN, R)$ is \textbf{time-resource consistent} if there exists a schedule $s$ such that $RC_s(TRN) \wedge TC_s(ATN)$. Determining whether a $TRN$ is time-resource consistent is the central problem addressed in this publication.
 
 \subsection{Properties of TRN}
-Before we proceed to describe algorithms for determining time-resource consistency it will be helpful to understand some properties that apply to every TRN.
+Before we proceed to describe algorithms for determining time-resource consistency it will be helpful to understand some properties common to every TRN.
 \begin{lemma}
 \label{resource_checking}
 For a $TRN$ a schedule $s$ is resource consistent if and only if
