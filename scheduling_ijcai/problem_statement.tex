@@ -36,9 +36,9 @@ U_s(t) = \sum_{\forall_{src_i \in R}} u_s(src_i, t)
 \]
 $R$ is the set of all the resource constraints. We say that the network is \textbf{resource consistent} under schedule $s$ when it satisfies predicate $RC_s(TRN)$, i.e.
 \begin{align}
-\label{usage_for_all}\forall_{t \in {\mathbb{R} - C}} . U_s(t) \leq 0
+\label{usage_for_all}\forall_{t \in \mathbb{R}} . U_s(t) \leq 0
 \end{align}
-where $C$ is some \textit{finite} set of real numbers. Intuitively, it means that resource is never consumed at a rate that is greater than the generation rate. Set $C$ is introduced to make it easier to prove certain properties, but is of no practical significance - notice that regardless of the contents of $C$ above statement is true 100 \% of time - there exists no positive length interval where $U_s > 0$. We say that $TRN$ is resource consistent, if there exists $s$, such that $RC_s(TRN)$ is true.
+Intuitively, it means that resource is never consumed at a rate that is greater than the generation rate. We say that $TRN$ is resource consistent, if there exists $s$, such that $RC_s(TRN)$ is true.
 
 \subsection{Time-resource consistency}
 $TRN=(ATN, R)$ is \textbf{time-resource consistent} if there exists a schedule $s$ such that $RC_s(TRN) \wedge TC_s(ATN)$. Determining whether a $TRN$ is time-resource consistent is the central problem addressed in this publication.
@@ -49,18 +49,19 @@ Before we proceed to describe algorithms for determining time-resource consisten
 \label{resource_checking}
 For a $TRN$ a schedule $s$ is resource consistent if and only if
 \begin{align}
-\label{eq:resource_consistency}\forall_{e \in E} \lim_{\epsilon \to 0} U_s(s(e) + \epsilon) \leq 0
+\label{eq:resource_consistency} \forall_{e \in E} U_s(s(e)) \leq 0
 \end{align}
 i.e. resource usage is non-positive a moment after all of the scheduled events.
 \end{lemma}
 \begin{proof}
+
 $\Rightarrow$ Follows from definition of resource-consistency.\\
-$\Leftarrow$ We say a time point $t \in \mathbb{R}$ is scheduled if there exists an event  $x \in E$ such that $t = s(x)$. Assume for contradiction, that the right side of the implication is satisfied, but the schedule is not resource consistent. That means that there exists a time point $t_{danger}$ for which $U_s(t_{danger}) > 0 $. We will only consider the case where $t_{danger}$ is \textbf{not} scheduled (because there are finitely many scheduled time points, we can consider them members of $C$). Let $t_{before}$ be the highest scheduled (so $t_{before}=s(e_{before})$ for some $e_{before} \in E$ ) time point that is smaller than $t_{danger}$. Notice that if no such time point existed, that would mean that there is no resource constraint $(x,y,r)$ such that $s(x) \leq t_{danger} < s(y)$, so $U_s(t_{danger})=0$ . We can therefore assume that $t_{before}$ exists. Notice that by definition of $t_{before}$ and simple resource constraints, $U_s(t)$ for $t_{before} < t \leq t_{danger}$ is constant, therefore $U_s(t_{danger}) = \lim_{\epsilon \to 0} U_s(s(e_{before}) + \epsilon) > 0$. Contradiction.
+$\Leftarrow$ We say a time point $t \in \mathbb{R}$ is scheduled if there exists an event  $e \in E$ such that $t = s(e)$. Assume for contradiction, that the right side of the implication is satisfied, but the schedule is not resource consistent. That means that there exists a time point $t_{danger}$ for which $U_s(t_{danger}) > 0 $. Notice that by assumption $t_{danger}$ could not be scheduled. Let $t_{before}$ be the highest scheduled time point is smaller than $t_{danger}$. Notice that if no such time point existed, that would mean that there is no resource constraint $(x,y,r)$ such that $s(x) \leq t_{danger} < s(y)$, so $U_s(t_{danger})=0$ . By assumption, $U_s(t_{before}) < 0$.  We can therefore assume that $t_{before}$ exists. Notice that by definition of $t_{before}$ and simple resource constraints, $U_s(t)$ for $t_{before} \leq t \leq t_{danger}$ is constant. If it wasn't there would be another scheduled point between $t_{before}$ and $t_{danger}$, but we assumed that $t_{before}$ is highest scheduled point smaller than $t_{danger}$. Therefore $ U_s(t_{danger}) = U_s(t_{before})$. But we assumed that $U_s(t_{danger}) > 0$ and $U_s(t_{before}) < 0 $ Contradiction.
 \end{proof}
 \begin{corollary}
 \label{cor:ordering}
-Given a $TRN$ and two schedules $A$ and $B$ where all events occur in the same order, $A$ is resource-consistent if and only if $B$ is resource-consistent.
+Given a $TRN$ and two schedules $A$ and $B$ where all events occur in the same order, $A$ is resource consistent if and only if $B$ is resource consistent.
 \end{corollary}
 \begin{proof}
-Notice that if we move execution time of arbitrary event, while preserving the relative ordering of time points, then net resource usage moment after that event will not change (as the $U_s(t)$ between the neighboring events remains constant). Therefore by lemma \ref{resource_checking} we can transform schedule $A$ into schedule $B$ while preserving resource consistency.
+Notice that if we move execution time of arbitrary event, while preserving the relative ordering of all the events, then net resource usage at that event will not change. Therefore by lemma \ref{resource_checking},  $A$ is resource-consistent if and only if $B$ is resource-consistent.
 \end{proof}
